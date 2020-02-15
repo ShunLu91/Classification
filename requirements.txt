@@ -1,0 +1,5 @@
+numpy==1.16.6
+torch==1.4.0
+torchvision==0.5.0
+thop==0.0.31.post2001170342
+tensorboardX==2.0
