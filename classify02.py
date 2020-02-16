@@ -15,7 +15,7 @@ from tensorboardX import SummaryWriter
 parser = argparse.ArgumentParser('Train model')
 parser.add_argument('--exp_name', type=str, required=True, help='search model name')
 parser.add_argument('--classes', type=int, default=4, help='num of MB_layers')
-parser.add_argument('--batch_size', type=int, default=4, help='batch size')
+parser.add_argument('--batch_size', type=int, default=32, help='batch size')
 parser.add_argument('--epochs', type=int, default=100, help='num of epochs')
 parser.add_argument('--seed', type=int, default=2020, help='seed')
 parser.add_argument('--learning_rate', type=float, default=0.01, help='initial learning rate')
@@ -152,19 +152,35 @@ def validate(epoch, val_data, device, model):
 class Network(nn.Module):
     def __init__(self, in_dim, n_hidden_1, n_hidden_2, out_dim):
         super(Network, self).__init__()
-        self.layer1 = nn.Sequential(nn.Linear(in_dim, n_hidden_1), nn.BatchNorm1d(n_hidden_1), nn.ReLU(True))
-        self.layer2 = nn.Sequential(nn.Linear(n_hidden_1, n_hidden_2), nn.BatchNorm1d(n_hidden_2), nn.ReLU(True))
-        self.layer3 = nn.Sequential(nn.Linear(n_hidden_2, out_dim))
+        self.conv0 = nn.Sequential(
+            nn.Conv2d(1, 32, 3, 2, padding=1, bias=False),
+            nn.BatchNorm2d(32),
+            nn.ReLU6(inplace=True),
+        )
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(32, 64, 3, 2, padding=0, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU6(inplace=True),
+        )
+        self.layer1 = nn.Sequential(nn.Linear(3968, 2560), nn.BatchNorm1d(2560), nn.ReLU(True))
+        self.layer2 = nn.Sequential(nn.Linear(2560, 1280), nn.BatchNorm1d(1280), nn.ReLU(True))
+        self.layer3 = nn.Sequential(nn.Linear(1280, 4))
 
     def forward(self, x):
-        x = torch.reshape(x, (-1, 1500))
+        # print(x.shape)
+        x = self.conv0(x)
+        # print(x.shape)
+        x = self.conv1(x).reshape(args.batch_size, -1)
+        # print(x.shape)
         x = self.layer1(x)
+        # print(x.shape)
         # x = nn.Dropout()(x)
         x = self.layer2(x)
         # x = nn.Dropout()(x)
-
+        # print(x.shape)
         x = self.layer3(x)
-        x = nn.Dropout()(x)
+        # x = nn.Dropout()(x)
+        # print(x.shape)
         return x
 
 
