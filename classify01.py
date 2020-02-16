@@ -12,9 +12,9 @@ from tensorboardX import SummaryWriter
 
 parser = argparse.ArgumentParser('Train model')
 parser.add_argument('--exp_name', type=str, required=True, help='exp name')
-parser.add_argument('--classes', type=int, default=4, help='num of MB_layers')
+parser.add_argument('--classes', type=int, default=4, help='num of classes')
 parser.add_argument('--batch_size', type=int, default=4, help='batch size')
-parser.add_argument('--epochs', type=int, default=100, help='num of epochs')
+parser.add_argument('--epochs', type=int, default=10, help='num of epochs')
 parser.add_argument('--seed', type=int, default=2020, help='seed')
 parser.add_argument('--learning_rate', type=float, default=0.001, help='initial learning rate')
 parser.add_argument('--learning_rate_min', type=float, default=1e-8, help='min learning rate')
