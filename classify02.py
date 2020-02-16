@@ -18,7 +18,7 @@ parser.add_argument('--classes', type=int, default=4, help='num of MB_layers')
 parser.add_argument('--batch_size', type=int, default=4, help='batch size')
 parser.add_argument('--epochs', type=int, default=100, help='num of epochs')
 parser.add_argument('--seed', type=int, default=2020, help='seed')
-parser.add_argument('--learning_rate', type=float, default=0.001, help='initial learning rate')
+parser.add_argument('--learning_rate', type=float, default=0.1, help='initial learning rate')
 parser.add_argument('--learning_rate_min', type=float, default=1e-8, help='min learning rate')
 parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
 parser.add_argument('--weight_decay', type=float, default=3e-4, help='weight decay')
@@ -79,8 +79,8 @@ class BrainWave_Set(Dataset):
             label = self.val_label
         image = data[:, :, index]
         label = label[index]
-        image = np.array(image/255, dtype='float').reshape((1, 6, 250))
-        label = np.array(label, dtype='float')
+        image = np.array(image/255, dtype='double').reshape((1, 6, 250))
+        label = np.array(label, dtype='double')
         image = torch.from_numpy(image)
         label = torch.from_numpy(label)
         # image = transforms.ToPILImage()(image).convert('RGB')
@@ -103,8 +103,8 @@ def train(args, epoch, train_data, device, model, criterion, optimizer, schedule
         inputs, targets = inputs.to(device), targets.to(device)
         # print(np.array(inputs).shape)
         optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = criterion(outputs, targets)
+        outputs = model(inputs.float())
+        loss = criterion(outputs, targets.long())
         loss.backward()
         nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
         prec1 = accuracy(outputs, targets, topk=(1,))
@@ -136,8 +136,8 @@ def validate(epoch, val_data, device, model):
     with torch.no_grad():
         for step, (inputs, targets) in enumerate(val_data):
             inputs, targets = inputs.to(device), targets.to(device)
-            outputs = model(inputs)
-            loss = criterion(outputs, targets)
+            outputs = model(inputs.float())
+            loss = criterion(outputs, targets.long())
             val_loss += loss.item()
             prec1 = accuracy(outputs, targets, topk=(1,))
             n = inputs.size(0)
@@ -157,6 +157,7 @@ class Network(nn.Module):
         self.layer3 = nn.Sequential(nn.Linear(n_hidden_2, out_dim))
 
     def forward(self, x):
+        x = torch.reshape(x, (-1, 1500))
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
