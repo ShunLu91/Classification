@@ -18,7 +18,7 @@ parser.add_argument('--classes', type=int, default=4, help='num of MB_layers')
 parser.add_argument('--batch_size', type=int, default=4, help='batch size')
 parser.add_argument('--epochs', type=int, default=100, help='num of epochs')
 parser.add_argument('--seed', type=int, default=2020, help='seed')
-parser.add_argument('--learning_rate', type=float, default=0.1, help='initial learning rate')
+parser.add_argument('--learning_rate', type=float, default=0.01, help='initial learning rate')
 parser.add_argument('--learning_rate_min', type=float, default=1e-8, help='min learning rate')
 parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
 parser.add_argument('--weight_decay', type=float, default=3e-4, help='weight decay')
@@ -79,7 +79,7 @@ class BrainWave_Set(Dataset):
             label = self.val_label
         image = data[:, :, index]
         label = label[index]
-        image = np.array(image/255, dtype='double').reshape((1, 6, 250))
+        image = np.array(image/50, dtype='double').reshape((1, 6, 250))
         label = np.array(label, dtype='double')
         image = torch.from_numpy(image)
         label = torch.from_numpy(label)
@@ -159,8 +159,11 @@ class Network(nn.Module):
     def forward(self, x):
         x = torch.reshape(x, (-1, 1500))
         x = self.layer1(x)
+        # x = nn.Dropout()(x)
         x = self.layer2(x)
+        # x = nn.Dropout()(x)
         x = self.layer3(x)
+        # x = nn.Dropout()(x)
         return x
 
 
@@ -193,11 +196,12 @@ def main():
     # flops, params = profile(model, inputs=(torch.randn(1, 3, 32, 32).to(device),), verbose=False)
     # print('Model: FLOPs={}M, Params={}M'.format(flops / 1e6, params / 1e6))
 
-    optimizer = torch.optim.SGD(
-        model.parameters(),
-        args.learning_rate,
-        momentum=args.momentum,
-        weight_decay=args.weight_decay)
+    # optimizer = torch.optim.SGD(
+    #     model.parameters(),
+    #     args.learning_rate,
+    #     momentum=args.momentum,
+    #     weight_decay=args.weight_decay)
+    optimizer = torch.optim.Adam(model.parameters())
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, float(args.epochs), eta_min=args.learning_rate_min, last_epoch=-1)
 
