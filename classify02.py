@@ -162,6 +162,7 @@ class Network(nn.Module):
         # x = nn.Dropout()(x)
         x = self.layer2(x)
         # x = nn.Dropout()(x)
+
         x = self.layer3(x)
         x = nn.Dropout()(x)
         return x
