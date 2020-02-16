@@ -3,10 +3,8 @@ import argparse
 from utils import *
 import torch.nn as nn
 import scipy.io as scio
-from thop import profile
 from datetime import datetime
 import torch.nn.functional as F
-from torchsummary import summary
 from torch.utils.data import Dataset
 import torch.backends.cudnn as cudnn
 from tensorboardX import SummaryWriter
@@ -30,8 +28,7 @@ parser.add_argument('--resume', type=bool, default=False, help='resume')
 parser.add_argument('--pretrained', type=str, default=None, help='pretrained')
 # ******************************* dataset *******************************#
 parser.add_argument('--dataset', type=str, default='imagenet', help='[cifar10, imagenet]')
-parser.add_argument('--data_dir', type=str, default='/Users/lushun/Documents/dataset/brain_wave/brain_wave.mat'
-                    , help='dataset dir')
+parser.add_argument('--data_dir', type=str, default='./brain_wave.mat', help='dataset dir')
 parser.add_argument('--cutout', action='store_true', default=False, help='use cutout')
 parser.add_argument('--cutout_length', type=int, default=16, help='cutout length')
 parser.add_argument('--resize', action='store_true', default=False, help='use resize')
@@ -46,12 +43,8 @@ class BrainWave_Set(Dataset):
     """
     BrainWave_Set
     """
-
     def __init__(self, args, training):
         super(BrainWave_Set, self).__init__()
-
-        # self.train_transform, self.valid_transform = data_transforms(args)
-
         self.training = training
         self.train_data, self.val_data, self.train_label, self.val_label= self.load_data(args.data_dir)
 
@@ -81,7 +74,6 @@ class BrainWave_Set(Dataset):
                                 data3[:, :, :168], data4[:, :, :168]))
         val_data = np.dstack((data1[:, :, 168:], data2[:, :, 168:],
                               data3[:, :, 168:], data4[:, :, 168:]))
-
         train_label = np.hstack((np.ones(168) * 0, np.ones(168) * 1,
                                  np.ones(168) * 2, np.ones(168) * 3))
         val_label = np.hstack((np.ones(72) * 0, np.ones(72) * 1,
@@ -99,12 +91,10 @@ class BrainWave_Set(Dataset):
             label = self.val_label
         image = data[:, :, index]
         label = label[index]
-        image = np.array(image/50, dtype='double').reshape((1, 6, 250))
-        label = np.array(label, dtype='double')
+        image = np.array(image/50, dtype='float').reshape((1, 6, 250))
+        label = np.array(label, dtype='float')
         image = torch.from_numpy(image)
         label = torch.from_numpy(label)
-        # image = transforms.ToPILImage()(image).convert('RGB')
-        # image = transforms.ToTensor()(image)
 
         return image, label
 
@@ -121,7 +111,6 @@ def train(args, epoch, train_data, device, model, criterion, optimizer, schedule
     top5 = AvgrageMeter()
     for step, (inputs, targets) in enumerate(train_data):
         inputs, targets = inputs.to(device), targets.to(device)
-        # print(np.array(inputs).shape)
         optimizer.zero_grad()
         outputs = model(inputs.float())
         loss = criterion(outputs, targets.long())
@@ -170,43 +159,8 @@ def validate(epoch, val_data, device, model):
 
 
 class Network(nn.Module):
-    def __init__(self, out_dim):
+    def __init__(self, class_num):
         super(Network, self).__init__()
-        self.conv0 = nn.Sequential(
-            nn.Conv2d(1, 32, 3, 2, padding=1, bias=False),
-            nn.BatchNorm2d(32),
-            nn.ReLU6(inplace=True),
-        )
-        self.conv1 = nn.Sequential(
-            nn.Conv2d(32, 64, 3, 2, padding=0, bias=False),
-            nn.BatchNorm2d(64),
-            nn.ReLU6(inplace=True),
-        )
-        self.layer1 = nn.Sequential(nn.Linear(3968, 2560), nn.BatchNorm1d(2560), nn.ReLU(True))
-        self.layer2 = nn.Sequential(nn.Linear(2560, 1280), nn.BatchNorm1d(1280), nn.ReLU(True))
-        self.layer3 = nn.Sequential(nn.Linear(1280, 4))
-
-    def forward(self, x):
-        # print(x.shape)
-        x = self.conv0(x)
-        # print(x.shape)
-        x = self.conv1(x).reshape(args.batch_size, -1)
-        # print(x.shape)
-        x = self.layer1(x)
-        # print(x.shape)
-        # x = nn.Dropout()(x)
-        x = self.layer2(x)
-        # x = nn.Dropout()(x)
-        # print(x.shape)
-        x = self.layer3(x)
-        x = nn.Dropout()(x)
-        # print(x.shape)
-        return x
-
-
-class Net(nn.Module):  # 定义网络
-    def __init__(self, class_num=4):
-        super(Net, self).__init__()
         self.conv1 = nn.Conv2d(1, 6, 3, padding=1)
         self.conv2 = nn.Conv2d(6, 16, 3)
         self.fc1 = nn.Linear(1968, 120)
@@ -216,7 +170,6 @@ class Net(nn.Module):  # 定义网络
     def forward(self, x):
         x = F.max_pool2d(F.relu(self.conv1(x)), kernel_size=(2, 2))
         x = F.max_pool2d(F.relu(self.conv2(x)), kernel_size=(1, 1))
-
         x = x.view(x.size()[0], -1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
@@ -226,6 +179,7 @@ class Net(nn.Module):  # 定义网络
 
 
 def main():
+    set_seed(args.seed)
     if not torch.cuda.is_available():
         device = torch.device('cpu')
     else:
@@ -236,9 +190,8 @@ def main():
 
     criterion = nn.CrossEntropyLoss().to(device)
 
-    # Network
-    model = Network(4)
-    # model = Net(4)
+    # model
+    model = Network(class_num=4)
 
     # pretrained
     if args.pretrained:
@@ -251,20 +204,10 @@ def main():
         model.load_state_dict(model_dict)
 
     model = model.to(device)
-    # summary(model, (3, 224, 224))
-    # flops, params = profile(model, inputs=(torch.randn(1, 3, 32, 32).to(device),), verbose=False)
-    # print('Model: FLOPs={}M, Params={}M'.format(flops / 1e6, params / 1e6))
-
-    # optimizer = torch.optim.SGD(
-    #     model.parameters(),
-    #     args.learning_rate,
-    #     momentum=args.momentum,
-    #     weight_decay=args.weight_decay)
     optimizer = torch.optim.Adam(model.parameters())
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, float(args.epochs), eta_min=args.learning_rate_min, last_epoch=-1)
 
-    train_transform, valid_transform = data_transforms(args)
     trainset = BrainWave_Set(args, training=True)
     valset = BrainWave_Set(args, training=False)
     train_queue = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
