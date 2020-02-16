@@ -2,11 +2,13 @@ import sys
 import argparse
 from utils import *
 import torch.nn as nn
+import scipy.io as scio
 from thop import profile
 from datetime import datetime
 import torchvision.datasets as dset
 from torchvision import models
 from torchsummary import summary
+from torch.utils.data import Dataset
 import torch.backends.cudnn as cudnn
 from tensorboardX import SummaryWriter
 
@@ -29,7 +31,8 @@ parser.add_argument('--resume', type=bool, default=False, help='resume')
 parser.add_argument('--pretrained', type=str, default=None, help='pretrained')
 # ******************************* dataset *******************************#
 parser.add_argument('--dataset', type=str, default='imagenet', help='[cifar10, imagenet]')
-parser.add_argument('--data_dir', type=str, required=True, help='dataset dir')
+parser.add_argument('--data_dir', type=str, default='/Users/lushun/Documents/dataset/brain_wave/brain_wave.mat'
+                    , help='dataset dir')
 parser.add_argument('--cutout', action='store_true', default=False, help='use cutout')
 parser.add_argument('--cutout_length', type=int, default=16, help='cutout length')
 parser.add_argument('--resize', action='store_true', default=False, help='use resize')
@@ -38,6 +41,57 @@ args = parser.parse_args()
 print(args)
 train_writer = SummaryWriter(log_dir='./writer/' + args.exp_name + '/Train')
 val_writer = SummaryWriter(log_dir='./writer/' + args.exp_name + '/Val')
+
+
+class BrainWave_Set(Dataset):
+    """
+    BrainWave_Set
+    """
+
+    def __init__(self, args, training):
+        super(BrainWave_Set, self).__init__()
+
+        # self.train_transform, self.valid_transform = data_transforms(args)
+
+        self.training = training
+        self.train_data, self.val_data, self.train_label, self.val_label= self.load_data(args.data_dir)
+
+    def load_data(self, data_dir):
+        data = scio.loadmat(data_dir)
+        train_data = np.dstack((data['color1'][:, :, :168], data['color2'][:, :, :168],
+                                data['color3'][:, :, :168], data['color4'][:, :, :168]))
+        val_data = np.dstack((data['color1'][:, :, 168:], data['color2'][:, :, 168:],
+                              data['color3'][:, :, 168:], data['color4'][:, :, 168:]))
+        train_label = np.hstack((np.ones(168) * 0, np.ones(168) * 1,
+                                 np.ones(168) * 2, np.ones(168) * 3))
+        val_label = np.hstack((np.ones(72) * 0, np.ones(72) * 1,
+                               np.ones(72) * 2, np.ones(72) * 3))
+        return train_data, val_data, train_label, val_label
+
+    def __getitem__(self, index):
+        # train
+        if self.training:
+            data = self.train_data
+            label = self.train_label
+        # val
+        else:
+            data = self.val_data
+            label = self.val_label
+        image = data[:, :, index]
+        label = label[index]
+        image = np.array(image/255, dtype='float').reshape((1, 6, 250))
+        label = np.array(label, dtype='float')
+        image = torch.from_numpy(image)
+        label = torch.from_numpy(label)
+        # image = transforms.ToPILImage()(image).convert('RGB')
+        # image = transforms.ToTensor()(image)
+
+        return image, label
+
+    def __len__(self):
+        if not self.training:
+            return 288
+        return 672
 
 
 def train(args, epoch, train_data, device, model, criterion, optimizer, scheduler):
@@ -95,6 +149,20 @@ def validate(epoch, val_data, device, model):
     return val_top1.avg, 1.0, val_loss / (step + 1)
 
 
+class Network(nn.Module):
+    def __init__(self, in_dim, n_hidden_1, n_hidden_2, out_dim):
+        super(Network, self).__init__()
+        self.layer1 = nn.Sequential(nn.Linear(in_dim, n_hidden_1), nn.BatchNorm1d(n_hidden_1), nn.ReLU(True))
+        self.layer2 = nn.Sequential(nn.Linear(n_hidden_1, n_hidden_2), nn.BatchNorm1d(n_hidden_2), nn.ReLU(True))
+        self.layer3 = nn.Sequential(nn.Linear(n_hidden_2, out_dim))
+
+    def forward(self, x):
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        return x
+
+
 def main():
     if not torch.cuda.is_available():
         device = torch.device('cpu')
@@ -106,13 +174,8 @@ def main():
 
     criterion = nn.CrossEntropyLoss().to(device)
 
-    # use pretrained resnet50
-    model = models.resnet50(pretrained=True)
-    # print(resnet50)
-    # for param in resnet50.parameters():
-    #     param.requires_grad = False
-    fc_inputs = model.fc.in_features
-    model.fc = nn.Linear(fc_inputs, args.classes)
+    # Network
+    model = Network(6*250, 300, 100, 4)
 
     # pretrained
     if args.pretrained:
@@ -125,10 +188,9 @@ def main():
         model.load_state_dict(model_dict)
 
     model = model.to(device)
-    summary(model, (3, 224, 224))
-    flops, params = profile(model, inputs=(torch.randn(1, 3, 32, 32).to(device),), verbose=False)
-    print('Model: FLOPs={}M, Params={}M'.format(flops / 1e6, params / 1e6))
-
+    # summary(model, (3, 224, 224))
+    # flops, params = profile(model, inputs=(torch.randn(1, 3, 32, 32).to(device),), verbose=False)
+    # print('Model: FLOPs={}M, Params={}M'.format(flops / 1e6, params / 1e6))
 
     optimizer = torch.optim.SGD(
         model.parameters(),
@@ -139,11 +201,10 @@ def main():
         optimizer, float(args.epochs), eta_min=args.learning_rate_min, last_epoch=-1)
 
     train_transform, valid_transform = data_transforms(args)
-    trainset = dset.ImageFolder(root=os.path.join(args.data_dir, 'train'), transform=train_transform)
-    print('Classes:', trainset.class_to_idx)
+    trainset = BrainWave_Set(args, training=True)
+    valset = BrainWave_Set(args, training=False)
     train_queue = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
                                               shuffle=True, num_workers=8, pin_memory=True)
-    valset = dset.ImageFolder(root=os.path.join(args.data_dir, 'val'), transform=valid_transform)
     valid_queue = torch.utils.data.DataLoader(valset, batch_size=args.batch_size,
                                               shuffle=False, num_workers=8, pin_memory=True)
     print('Dataset: Train={}, Val={}'.format(len(trainset), len(valset)))

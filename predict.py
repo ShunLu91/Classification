@@ -25,9 +25,7 @@ if __name__ == '__main__':
     ])
 
     # load img
-    img = Image.open('/Users/lushun/Documents/dataset/wavelet/val/4/4-2-36.jpg')
-    input = predict_transform(img)
-    input = input.unsqueeze(0)
+
 
     # load weights
     model = models.resnet50(pretrained=True)
