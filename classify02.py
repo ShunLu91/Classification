@@ -5,8 +5,7 @@ import torch.nn as nn
 import scipy.io as scio
 from thop import profile
 from datetime import datetime
-import torchvision.datasets as dset
-from torchvision import models
+import torch.nn.functional as F
 from torchsummary import summary
 from torch.utils.data import Dataset
 import torch.backends.cudnn as cudnn
@@ -58,10 +57,31 @@ class BrainWave_Set(Dataset):
 
     def load_data(self, data_dir):
         data = scio.loadmat(data_dir)
-        train_data = np.dstack((data['color1'][:, :, :168], data['color2'][:, :, :168],
-                                data['color3'][:, :, :168], data['color4'][:, :, :168]))
-        val_data = np.dstack((data['color1'][:, :, 168:], data['color2'][:, :, 168:],
-                              data['color3'][:, :, 168:], data['color4'][:, :, 168:]))
+        for i, j in enumerate(np.random.choice(data['color1'].shape[2], size=data['color1'].shape[2], replace=False)):
+            if not i:
+                data1 = data['color1'][:, :, j]
+            else:
+                data1 = np.dstack((data1, data['color1'][:, :, j]))
+        for i, j in enumerate(np.random.choice(data['color2'].shape[2], size=data['color2'].shape[2], replace=False)):
+            if not i:
+                data2 = data['color2'][:, :, j]
+            else:
+                data2 = np.dstack((data2, data['color2'][:, :, j]))
+        for i, j in enumerate(np.random.choice(data['color3'].shape[2], size=data['color3'].shape[2], replace=False)):
+            if not i:
+                data3 = data['color3'][:, :, j]
+            else:
+                data3 = np.dstack((data3, data['color3'][:, :, j]))
+        for i, j in enumerate(np.random.choice(data['color4'].shape[2], size=data['color4'].shape[2], replace=False)):
+            if not i:
+                data4 = data['color4'][:, :, j]
+            else:
+                data4 = np.dstack((data4, data['color4'][:, :, j]))
+        train_data = np.dstack((data1[:, :, :168], data2[:, :, :168],
+                                data3[:, :, :168], data4[:, :, :168]))
+        val_data = np.dstack((data1[:, :, 168:], data2[:, :, 168:],
+                              data3[:, :, 168:], data4[:, :, 168:]))
+
         train_label = np.hstack((np.ones(168) * 0, np.ones(168) * 1,
                                  np.ones(168) * 2, np.ones(168) * 3))
         val_label = np.hstack((np.ones(72) * 0, np.ones(72) * 1,
@@ -150,7 +170,7 @@ def validate(epoch, val_data, device, model):
 
 
 class Network(nn.Module):
-    def __init__(self, in_dim, n_hidden_1, n_hidden_2, out_dim):
+    def __init__(self, out_dim):
         super(Network, self).__init__()
         self.conv0 = nn.Sequential(
             nn.Conv2d(1, 32, 3, 2, padding=1, bias=False),
@@ -184,6 +204,27 @@ class Network(nn.Module):
         return x
 
 
+class Net(nn.Module):  # 定义网络
+    def __init__(self, class_num=4):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(1, 6, 3, padding=1)
+        self.conv2 = nn.Conv2d(6, 16, 3)
+        self.fc1 = nn.Linear(1968, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, class_num)
+
+    def forward(self, x):
+        x = F.max_pool2d(F.relu(self.conv1(x)), kernel_size=(2, 2))
+        x = F.max_pool2d(F.relu(self.conv2(x)), kernel_size=(1, 1))
+
+        x = x.view(x.size()[0], -1)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = nn.Dropout()(x)
+        x = self.fc3(x)
+        return x
+
+
 def main():
     if not torch.cuda.is_available():
         device = torch.device('cpu')
@@ -196,7 +237,8 @@ def main():
     criterion = nn.CrossEntropyLoss().to(device)
 
     # Network
-    model = Network(6*250, 300, 100, 4)
+    model = Network(4)
+    # model = Net(4)
 
     # pretrained
     if args.pretrained:
