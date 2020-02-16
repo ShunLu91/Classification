@@ -64,7 +64,7 @@ def train(args, epoch, train_data, device, model, criterion, optimizer, schedule
             dt.strftime('%x'), dt.strftime('%X'), '%.4d' % (epoch + 1), '%.4d' % args.epochs,
                                                   '%.4d' % (step + 1), '%.4d' % len(train_data),
                                                   '%.5f' % scheduler.get_lr()[0],
-                                                  '%.6f' % loss, '%.3f' % top1.avg, '%.3f' % top5.avg))
+                                                  '%.6f' % loss, '%.3f' % top1.avg, '%.3f' % 1.0))
         sys.stdout.flush()
     train_writer.add_scalar('Loss', train_loss / (step + 1), epoch)
     train_writer.add_scalar('Acc', top1.avg, epoch)
@@ -85,14 +85,14 @@ def validate(epoch, val_data, device, model):
             outputs = model(inputs)
             loss = criterion(outputs, targets)
             val_loss += loss.item()
-            prec1, = accuracy(outputs, targets, topk=(1,))
+            prec1 = accuracy(outputs, targets, topk=(1,))
             n = inputs.size(0)
             val_top1.update(prec1[0], n)
             # val_top5.update(prec5.item(), n)
     val_writer.add_scalar('Loss', val_loss / (step + 1), epoch)
     val_writer.add_scalar('Acc', val_top1.avg, epoch)
 
-    return val_top1.avg, val_top5.avg, val_loss / (step + 1)
+    return val_top1.avg, 1.0, val_loss / (step + 1)
 
 
 def main():
@@ -126,7 +126,7 @@ def main():
 
     model = model.to(device)
     summary(model, (3, 224, 224))
-    flops, params = profile(model, inputs=(torch.randn(1, 3, 224, 224).to(device),), verbose=False)
+    flops, params = profile(model, inputs=(torch.randn(1, 3, 32, 32).to(device),), verbose=False)
     print('Model: FLOPs={}M, Params={}M'.format(flops / 1e6, params / 1e6))
 
 
