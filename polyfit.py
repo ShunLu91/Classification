@@ -9,7 +9,6 @@ def rang(x, y, jump):
     yield x
     x += jump
 
-
 if __name__ == '__main__':
     # 构造参数方程表示的圆
     theta = np.arange(0, 2*np.pi, 0.01)
