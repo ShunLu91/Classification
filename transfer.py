@@ -1,24 +1,24 @@
 import os
-import torch
-from torchvision import datasets, models, transforms
-import torch.nn as nn
-import torch.optim as optim
-import time
 import sys
+import time
+import torch
 import argparse
+import torch.nn as nn
 from datetime import datetime
+from torchsummary import summary
+from thop import profile
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
-from utils import set_seed, AvgrageMeter, accuracy, data_transforms
+from torchvision import datasets, models, transforms
+from utils import *
 
 parser = argparse.ArgumentParser('Train signal model')
 parser.add_argument('--exp_name', type=str, required=True, help='search model name')
 parser.add_argument('--classes', type=int, default=9, help='num of MB_layers')
-parser.add_argument('--layers', type=int, default=12, help='num of MB_layers')
 parser.add_argument('--batch_size', type=int, default=256, help='batch size')
 parser.add_argument('--epochs', type=int, default=600, help='num of epochs')
 parser.add_argument('--seed', type=int, default=0, help='seed')
-parser.add_argument('--learning_rate', type=float, default=0.025, help='initial learning rate')
+parser.add_argument('--learning_rate', type=float, default=0.001, help='initial learning rate')
 parser.add_argument('--learning_rate_min', type=float, default=1e-8, help='min learning rate')
 parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
 parser.add_argument('--weight_decay', type=float, default=3e-4, help='weight decay')
@@ -31,7 +31,11 @@ parser.add_argument('--grad_clip', type=float, default=5, help='gradient clippin
 parser.add_argument('--gpu', type=int, default=0, help='gpu id')
 parser.add_argument('--resume', type=bool, default=False, help='resume')
 # ******************************* dataset *******************************#
-parser.add_argument('--dataset', type=str, default='cifar10', help='[cifar10, imagenet]')
+parser.add_argument('--dataset', type=str, default='imagenet')
+parser.add_argument('--data_dir', type=str, default='/home/lushun/dataset/mushroom')
+parser.add_argument('--cutout', action='store_true', default=False, help='use cutout')
+parser.add_argument('--cutout_length', type=int, default=16, help='cutout length')
+
 args = parser.parse_args()
 print(args)
 
@@ -103,11 +107,8 @@ def validate(epoch, val_data, device, model):
 
     return val_top1.avg, val_top5.avg, val_loss / (step + 1)
 
-if __name__ == '__main__':
-    batch_size = 128  # 每个批次取的照片数量
-    num_classes = 9  # 类别数
-    data_dir = '/home/lushun/dataset/mushroom'
 
+if __name__ == '__main__':
     # seed
     set_seed(args.seed)
 
@@ -124,21 +125,21 @@ if __name__ == '__main__':
         cudnn.enabled = True
         device = torch.device("cuda")
 
-    train_transform, valid_transform = data_transforms_cifar(args)
+    train_transform, valid_transform = data_transforms(args)
+    train_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'train'), transform=train_transform)
+    val_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'val'), transform=valid_transform)
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size,
+                                              shuffle=False, num_workers=8, pin_memory=True)
+    val_loader = torch.utils.data.DataLoader(val_data, batch_size=args.batch_size,
+                                              shuffle=False, num_workers=8, pin_memory=True)
+    print('train_data:{}, val_data:{}'.format(len(train_data), len(val_data)))
 
-    train = datasets.ImageFolder(root=os.path.join(data_dir, 'train'), transform=image_transforms['train']),
-    'val': datasets.ImageFolder(root=os.path.join(data_dir, 'val'), transform=image_transforms['val'])
-
-    train_data_size = len(data['train'])
-    val_data_size = len(data['val'])
-    train_data = DataLoader(data['train'], batch_size=batch_size, shuffle=True)  # shuffle=True
-    val_data = DataLoader(data['val'], batch_size=batch_size, shuffle=True)
-    print('train_data:{}, val_data:{}'.format(len(data['train']), len(data['val'])))
-
-    model = pretrained_model('resnet50', classes=num_classes)
+    model = pretrained_model('resnet50', classes=args.classes)
     model = model.to(device)
+    criterion = nn.CrossEntropyLoss().to(device)
+
     summary(model, (3, 224, 224))
-    flops, params = profile(model, inputs=(torch.randn(1, 3, 32, 32).to(device),), verbose=False)
+    flops, params = profile(model, inputs=(torch.randn(1, 3, 224, 224).to(device),), verbose=False)
     print('FLOPs: {}, params: {}'.format(flops / 1e6, params / 1e6))
 
     optimizer = torch.optim.SGD(
@@ -151,15 +152,15 @@ if __name__ == '__main__':
 
 
     best_acc = 0.0
-    for epoch in range(start_epoch, args.epochs):
+    for epoch in range(0, args.epochs):
         t1 = time.time()
 
         # train
-        train(args, epoch, train_queue, device, model, criterion=criterion, optimizer=optimizer, scheduler=scheduler)
+        train(args, epoch, train_loader, device, model, criterion=criterion, optimizer=optimizer, scheduler=scheduler)
         scheduler.step()
 
         # validate
-        val_top1, val_top5, val_obj = validate(epoch, val_data=valid_queue, device=device, model=model)
+        val_top1, val_top5, val_obj = validate(epoch, val_data=val_loader, device=device, model=model)
         elapse = time.time() - t1
         h, m, s = eta_time(elapse, args.epochs - epoch - 1)
 
