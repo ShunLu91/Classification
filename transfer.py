@@ -17,6 +17,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 parser = argparse.ArgumentParser('Train signal model')
 parser.add_argument('--exp_name', type=str, default='transfer', help='search model name')
+parser.add_argument('--model_name', type=str, default='resnet50', help='search model name')
 parser.add_argument('--classes', type=int, default=9, help='num of MB_layers')
 parser.add_argument('--batch_size', type=int, default=1, help='batch size')
 parser.add_argument('--epochs', type=int, default=600, help='num of epochs')
@@ -47,7 +48,6 @@ def pretrained_model(model_name, classes):
     if model_name == 'resnet50':
         network = models.resnet50(pretrained=True)  # 调用预训练好的RestNet模型
         fc_inputs = network.fc.in_features
-        print(fc_inputs)
         # freeze params
         # for param in network.parameters():
         #     param.requires_grad = False
@@ -168,7 +168,7 @@ if __name__ == '__main__':
     # train_loader = DataLoader(data['train30n'], batch_size=args.batch_size, shuffle=True, num_workers=8, pin_memory=True)
     # valid_loader = DataLoader(data['valid30'], batch_size=args.batch_size, shuffle=True, num_workers=8, pin_memory=True)
 
-    model = pretrained_model('xception', classes=args.classes)
+    model = pretrained_model(args.model_name, classes=args.classes)
     model = model.to(device)
     criterion = nn.CrossEntropyLoss().to(device)
 
