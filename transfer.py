@@ -51,7 +51,7 @@ def pretrained_model(name, classes):
     #     param.requires_grad = False
     fc_inputs = network.fc.in_features
     network.fc = nn.Sequential(
-        # nn.Dropout(args.dropout_rate),
+        nn.Dropout(args.dropout_rate),
         nn.Linear(fc_inputs, classes)
     )
 
@@ -141,7 +141,7 @@ if __name__ == '__main__':
             transforms.RandomResizedCrop(size=224, scale=(0.8, 1.0)),
             # transforms.RandomRotation(degrees=15),
             transforms.RandomHorizontalFlip(),
-            transforms.CenterCrop(size=224),
+            # transforms.CenterCrop(size=224),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]),
         'valid30': transforms.Compose([
