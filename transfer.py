@@ -127,14 +127,41 @@ if __name__ == '__main__':
         cudnn.enabled = True
         device = torch.device("cuda")
 
-    train_transform, valid_transform = data_transforms(args)
-    train_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'train'), transform=train_transform)
-    val_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'val'), transform=valid_transform)
-    train_loader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size,
-                                              shuffle=True, num_workers=8, pin_memory=True)
-    val_loader = torch.utils.data.DataLoader(val_data, batch_size=args.batch_size,
-                                              shuffle=False, num_workers=8, pin_memory=True)
-    print('train_data:{}, val_data:{}'.format(len(train_data), len(val_data)))
+    # train_transform, valid_transform = data_transforms(args)
+    # train_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'train'), transform=train_transform)
+    # val_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'val'), transform=valid_transform)
+    # train_loader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size,
+    #                                           shuffle=True, num_workers=8, pin_memory=True)
+    # val_loader = torch.utils.data.DataLoader(val_data, batch_size=args.batch_size,
+    #                                           shuffle=False, num_workers=8, pin_memory=True)
+    # print('train_data:{}, val_data:{}'.format(len(train_data), len(val_data)))
+
+    image_transforms = {
+        'train30n': transforms.Compose([
+            transforms.RandomResizedCrop(size=224, scale=(0.8, 1.0)),
+            # transforms.RandomRotation(degrees=15),
+            transforms.RandomHorizontalFlip(),
+            transforms.CenterCrop(size=224),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]),
+        'valid30': transforms.Compose([
+            transforms.Resize(size=256),
+            transforms.CenterCrop(size=224),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])}
+
+    train_directory = os.path.join(args.data_dir, 'train')
+    valid_directory = os.path.join(args.data_dir, 'valid')
+
+    data = {
+        'train30n': datasets.ImageFolder(root=train_directory, transform=image_transforms['train30n']),
+        'valid30': datasets.ImageFolder(root=valid_directory, transform=image_transforms['valid30'])}
+
+    train_data_size = len(data['train30n'])
+    valid_data_size = len(data['valid30'])
+
+    train_loader = DataLoader(data['train30n'], batch_size=args.batch_size, shuffle=True, num_workers=8, pin_memory=True)
+    valid_loader = DataLoader(data['valid30'], batch_size=args.batch_size, shuffle=True, num_workers=8, pin_memory=True)
 
     model = pretrained_model('resnet50', classes=args.classes)
     model = model.to(device)
