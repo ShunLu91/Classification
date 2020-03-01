@@ -132,7 +132,7 @@ if __name__ == '__main__':
     # val_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'val'), transform=valid_transform)
     # train_loader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size,
     #                                           shuffle=True, num_workers=8, pin_memory=True)
-    # val_loader = torch.utils.data.DataLoader(val_data, batch_size=args.batch_size,
+    # valid_loader = torch.utils.data.DataLoader(val_data, batch_size=args.batch_size,
     #                                           shuffle=False, num_workers=8, pin_memory=True)
     # print('train_data:{}, val_data:{}'.format(len(train_data), len(val_data)))
 
@@ -190,7 +190,7 @@ if __name__ == '__main__':
         scheduler.step()
 
         # validate
-        val_top1, val_top5, val_obj = validate(epoch, val_data=val_loader, device=device, model=model)
+        val_top1, val_top5, val_obj = validate(epoch, val_data=valid_loader, device=device, model=model)
         elapse = time.time() - t1
         h, m, s = eta_time(elapse, args.epochs - epoch - 1)
 
