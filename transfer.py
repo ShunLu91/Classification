@@ -151,7 +151,7 @@ if __name__ == '__main__':
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])}
 
     train_directory = os.path.join(args.data_dir, 'train')
-    valid_directory = os.path.join(args.data_dir, 'valid')
+    valid_directory = os.path.join(args.data_dir, 'val')
 
     data = {
         'train30n': datasets.ImageFolder(root=train_directory, transform=image_transforms['train30n']),
