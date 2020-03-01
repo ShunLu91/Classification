@@ -51,7 +51,7 @@ def pretrained_model(name, classes):
     #     param.requires_grad = False
     fc_inputs = network.fc.in_features
     network.fc = nn.Sequential(
-        nn.Dropout(args.dropout_rate),
+        # nn.Dropout(args.dropout_rate),
         nn.Linear(fc_inputs, classes)
     )
 
@@ -131,7 +131,7 @@ if __name__ == '__main__':
     train_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'train'), transform=train_transform)
     val_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'val'), transform=valid_transform)
     train_loader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size,
-                                              shuffle=False, num_workers=8, pin_memory=True)
+                                              shuffle=True, num_workers=8, pin_memory=True)
     val_loader = torch.utils.data.DataLoader(val_data, batch_size=args.batch_size,
                                               shuffle=False, num_workers=8, pin_memory=True)
     print('train_data:{}, val_data:{}'.format(len(train_data), len(val_data)))
