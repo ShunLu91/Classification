@@ -166,6 +166,9 @@ class Network(nn.Module):
         self.fc1 = nn.Linear(1968, 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, class_num)
+        exec('self.width_{} = {}'.format(0, 1.0))
+        print(self.width_0)
+
 
     def forward(self, x):
         x = F.max_pool2d(F.relu(self.conv1(x)), kernel_size=(2, 2))
