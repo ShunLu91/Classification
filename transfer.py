@@ -13,9 +13,9 @@ from torchvision import datasets, models, transforms
 from utils import *
 
 parser = argparse.ArgumentParser('Train signal model')
-parser.add_argument('--exp_name', type=str, required=True, help='search model name')
+parser.add_argument('--exp_name', type=str, default='transfer', help='search model name')
 parser.add_argument('--classes', type=int, default=9, help='num of MB_layers')
-parser.add_argument('--batch_size', type=int, default=256, help='batch size')
+parser.add_argument('--batch_size', type=int, default=1, help='batch size')
 parser.add_argument('--epochs', type=int, default=600, help='num of epochs')
 parser.add_argument('--seed', type=int, default=0, help='seed')
 parser.add_argument('--learning_rate', type=float, default=0.001, help='initial learning rate')
@@ -25,14 +25,14 @@ parser.add_argument('--weight_decay', type=float, default=3e-4, help='weight dec
 parser.add_argument('--train_interval', type=int, default=1, help='train to print frequency')
 parser.add_argument('--val_interval', type=int, default=5, help='evaluate and save frequency')
 parser.add_argument('--smooth', type=float, default=0.0, help='label smoothing')
-parser.add_argument('--dropout_rate', type=float, default=0.3, help='drop out rate')
+parser.add_argument('--dropout_rate', type=float, default=0.5, help='drop out rate')
 parser.add_argument('--drop_path_prob', type=float, default=0.3, help='drop_path_prob')
 parser.add_argument('--grad_clip', type=float, default=5, help='gradient clipping')
-parser.add_argument('--gpu', type=int, default=0, help='gpu id')
+parser.add_argument('--gpu', type=int, default=4, help='gpu id')
 parser.add_argument('--resume', type=bool, default=False, help='resume')
 # ******************************* dataset *******************************#
 parser.add_argument('--dataset', type=str, default='imagenet')
-parser.add_argument('--data_dir', type=str, default='/home/lushun/dataset/mushroom')
+parser.add_argument('--data_dir', type=str, default='/home/lushun/dataset/mushroom/valAndTrain')
 parser.add_argument('--cutout', action='store_true', default=False, help='use cutout')
 parser.add_argument('--cutout_length', type=int, default=16, help='cutout length')
 
@@ -49,7 +49,7 @@ def pretrained_model(name, classes):
     #     param.requires_grad = False
     fc_inputs = network.fc.in_features
     network.fc = nn.Sequential(
-        nn.Dropout(),
+        nn.Dropout(args.dropout_rate),
         nn.Linear(fc_inputs, classes)
     )
 
@@ -68,7 +68,7 @@ def train(args, epoch, train_data, device, model, criterion, optimizer, schedule
     for step, (inputs, targets) in enumerate(train_data):
         inputs, targets = inputs.to(device), targets.to(device)
         optimizer.zero_grad()
-        outputs, logits_aux = model(inputs, drop_path_prob)
+        outputs = model(inputs)
         loss = criterion(outputs, targets)
         loss.backward()
         nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
@@ -97,7 +97,7 @@ def validate(epoch, val_data, device, model):
     with torch.no_grad():
         for step, (inputs, targets) in enumerate(val_data):
             inputs, targets = inputs.to(device), targets.to(device)
-            outputs, _ = model(inputs)
+            outputs = model(inputs)
             loss = criterion(outputs, targets)
             val_loss += loss.item()
             prec1, prec5 = accuracy(outputs, targets, topk=(1, 5))

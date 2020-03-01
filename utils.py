@@ -74,7 +74,7 @@ def data_transforms(args):
         MEAN = [0.485, 0.456, 0.406]
         STD = [0.229, 0.224, 0.225]
 
-    if args.resize or args.dataset == 'imagenet':  # cifar10 resize or imagenet
+    if args.dataset == 'imagenet':
         train_transform = transforms.Compose([
             transforms.RandomResizedCrop(224),
             # transforms.Resize(256),
