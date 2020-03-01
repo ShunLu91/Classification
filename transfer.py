@@ -11,6 +11,8 @@ import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
 from torchvision import datasets, models, transforms
 from utils import *
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 parser = argparse.ArgumentParser('Train signal model')
 parser.add_argument('--exp_name', type=str, default='transfer', help='search model name')
@@ -113,8 +115,8 @@ if __name__ == '__main__':
     set_seed(args.seed)
 
     # prepare dir
-    if not os.path.exists('./full_train'.format(args.exp_name)):
-        os.mkdir('./full_train'.format(args.exp_name))
+    if not os.path.exists('./snapshots'.format(args.exp_name)):
+        os.mkdir('./snapshots'.format(args.exp_name))
 
     # device
     if not torch.cuda.is_available():
@@ -175,7 +177,7 @@ if __name__ == '__main__':
                 'supernet_state': model.state_dict(),
                 'scheduler_state': scheduler.state_dict()
             }
-            path = './full_train/{}_full_train_states.pt.tar'.format(args.exp_name)
+            path = './snapshots/{}_transfer_states.pt.tar'.format(args.exp_name)
             torch.save(state, path)
             # print('\n best val acc: {:.6}'.format(best_acc))
         print('\nval: loss={:.6}, top1={:.6}, top5={:.6}, best={:.6}, elapse={:.0f}s, eta={:.0f}h {:.0f}m {:.0f}s\n'
