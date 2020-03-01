@@ -145,8 +145,8 @@ if __name__ == '__main__':
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])}
 
     train_transform, valid_transform = data_transforms(args)
-    train_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'train'), transform=image_transforms['train30n'])
-    val_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'val'), transform=image_transforms['train30n'])
+    train_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'train'), transform=train_transform)
+    val_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'val'), transform=valid_transform)
     train_loader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size,
                                               shuffle=True, num_workers=8, pin_memory=True)
     valid_loader = torch.utils.data.DataLoader(val_data, batch_size=args.batch_size,
