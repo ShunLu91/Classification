@@ -3,6 +3,7 @@ import sys
 import time
 import torch
 import argparse
+import pretrainedmodels
 import torch.nn as nn
 from datetime import datetime
 from torchsummary import summary
@@ -42,21 +43,21 @@ args = parser.parse_args()
 print(args)
 
 
-def pretrained_model(name, classes):
-    if name == 'resnet50':
+def pretrained_model(model_name, classes):
+    if model_name == 'resnet50':
         network = models.resnet50(pretrained=True)  # 调用预训练好的RestNet模型
-    elif name == 'xception':
-        network = models.xception(pretrained=True)  # 调用预训练好的RestNet模型
+        fc_inputs = network.fc.in_features
+        # freeze params
+        # for param in network.parameters():
+        #     param.requires_grad = False
 
-    # freeze params
-    # for param in network.parameters():
-    #     param.requires_grad = False
-    fc_inputs = network.fc.in_features
+    elif model_name == 'xception':
+        network = pretrainedmodels.__dict__[model_name](pretrained='imagenet')
+        fc_inputs = network.last_linear
     network.fc = nn.Sequential(
         nn.Dropout(args.dropout_rate),
         nn.Linear(fc_inputs, classes)
     )
-
     return network
 
 def train(args, epoch, train_data, device, model, criterion, optimizer, scheduler):
@@ -166,7 +167,7 @@ if __name__ == '__main__':
     # train_loader = DataLoader(data['train30n'], batch_size=args.batch_size, shuffle=True, num_workers=8, pin_memory=True)
     # valid_loader = DataLoader(data['valid30'], batch_size=args.batch_size, shuffle=True, num_workers=8, pin_memory=True)
 
-    model = pretrained_model('resnet50', classes=args.classes)
+    model = pretrained_model('xception', classes=args.classes)
     model = model.to(device)
     criterion = nn.CrossEntropyLoss().to(device)
 
