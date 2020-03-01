@@ -47,13 +47,14 @@ def pretrained_model(model_name, classes):
     if model_name == 'resnet50':
         network = models.resnet50(pretrained=True)  # 调用预训练好的RestNet模型
         fc_inputs = network.fc.in_features
+        print(fc_inputs)
         # freeze params
         # for param in network.parameters():
         #     param.requires_grad = False
 
     elif model_name == 'xception':
         network = pretrainedmodels.__dict__[model_name](pretrained='imagenet')
-        fc_inputs = network.last_linear
+        fc_inputs = 2048
     network.fc = nn.Sequential(
         nn.Dropout(args.dropout_rate),
         nn.Linear(fc_inputs, classes)
