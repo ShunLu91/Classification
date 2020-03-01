@@ -45,6 +45,8 @@ print(args)
 def pretrained_model(name, classes):
     if name == 'resnet50':
         network = models.resnet50(pretrained=True)  # 调用预训练好的RestNet模型
+    elif name == 'xception':
+        network = models.xception(pretrained=True)  # 调用预训练好的RestNet模型
 
     # freeze params
     # for param in network.parameters():
@@ -127,14 +129,6 @@ if __name__ == '__main__':
         cudnn.enabled = True
         device = torch.device("cuda")
 
-    # train_transform, valid_transform = data_transforms(args)
-    # train_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'train'), transform=train_transform)
-    # val_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'val'), transform=valid_transform)
-    # train_loader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size,
-    #                                           shuffle=True, num_workers=8, pin_memory=True)
-    # valid_loader = torch.utils.data.DataLoader(val_data, batch_size=args.batch_size,
-    #                                           shuffle=False, num_workers=8, pin_memory=True)
-    # print('train_data:{}, val_data:{}'.format(len(train_data), len(val_data)))
 
     image_transforms = {
         'train30n': transforms.Compose([
@@ -150,18 +144,27 @@ if __name__ == '__main__':
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])}
 
-    train_directory = os.path.join(args.data_dir, 'train')
-    valid_directory = os.path.join(args.data_dir, 'val')
+    train_transform, valid_transform = data_transforms(args)
+    train_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'train'), transform=image_transforms['train30n'])
+    val_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'val'), transform=image_transforms['train30n'])
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size,
+                                              shuffle=True, num_workers=8, pin_memory=True)
+    valid_loader = torch.utils.data.DataLoader(val_data, batch_size=args.batch_size,
+                                              shuffle=False, num_workers=8, pin_memory=True)
+    print('train_data:{}, val_data:{}'.format(len(train_data), len(val_data)))
 
-    data = {
-        'train30n': datasets.ImageFolder(root=train_directory, transform=image_transforms['train30n']),
-        'valid30': datasets.ImageFolder(root=valid_directory, transform=image_transforms['valid30'])}
-
-    train_data_size = len(data['train30n'])
-    valid_data_size = len(data['valid30'])
-
-    train_loader = DataLoader(data['train30n'], batch_size=args.batch_size, shuffle=True, num_workers=8, pin_memory=True)
-    valid_loader = DataLoader(data['valid30'], batch_size=args.batch_size, shuffle=True, num_workers=8, pin_memory=True)
+    # train_directory = os.path.join(args.data_dir, 'train')
+    # valid_directory = os.path.join(args.data_dir, 'val')
+    #
+    # data = {
+    #     'train30n': datasets.ImageFolder(root=train_directory, transform=image_transforms['train30n']),
+    #     'valid30': datasets.ImageFolder(root=valid_directory, transform=image_transforms['valid30'])}
+    #
+    # train_data_size = len(data['train30n'])
+    # valid_data_size = len(data['valid30'])
+    #
+    # train_loader = DataLoader(data['train30n'], batch_size=args.batch_size, shuffle=True, num_workers=8, pin_memory=True)
+    # valid_loader = DataLoader(data['valid30'], batch_size=args.batch_size, shuffle=True, num_workers=8, pin_memory=True)
 
     model = pretrained_model('resnet50', classes=args.classes)
     model = model.to(device)
