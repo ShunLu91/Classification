@@ -76,7 +76,7 @@ def data_transforms(args):
 
     if args.dataset == 'imagenet':
         train_transform = transforms.Compose([
-            transforms.RandomResizedCrop(299),
+            transforms.RandomResizedCrop((299,299)),
             # transforms.Resize(256),
             # transforms.CenterCrop(224),
             transforms.RandomHorizontalFlip(),
@@ -85,8 +85,8 @@ def data_transforms(args):
             transforms.Normalize(MEAN, STD)
         ])
         valid_transform = transforms.Compose([
-            transforms.Resize(320),
-            transforms.CenterCrop(299),
+            transforms.Resize((320, 320)),
+            transforms.CenterCrop((299,299)),
             transforms.ToTensor(),
             transforms.Normalize(MEAN, STD)
         ])
