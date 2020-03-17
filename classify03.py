@@ -87,7 +87,7 @@ def validate(epoch, val_data, device, model):
             outputs = model(inputs)
             loss = criterion(outputs, targets)
             val_loss += loss.item()
-            prec1, prec5 = accuracy(outputs, targets, topk=(1, 5))
+            prec1 = accuracy(outputs, targets, topk=(1, ))
             n = inputs.size(0)
             val_top1.update(prec1[0], n)
     val_writer.add_scalar('Loss', val_loss / (step + 1), epoch)
