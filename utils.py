@@ -74,7 +74,7 @@ def data_transforms(args):
         MEAN = [0.485, 0.456, 0.406]
         STD = [0.229, 0.224, 0.225]
 
-    if args.dataset == 'imagenet':
+    if args.dataset == 'imagenet' and args.exp_name is not 'inception_v3':
         train_transform = transforms.Compose([
             transforms.RandomResizedCrop(224),
             # transforms.Resize(256),
@@ -90,18 +90,23 @@ def data_transforms(args):
             transforms.ToTensor(),
             transforms.Normalize(MEAN, STD)
         ])
-    elif args.dataset == 'cifar10':  # cifar10
+    if args.exp_name == 'inception_v3':
         train_transform = transforms.Compose([
-            transforms.RandomCrop(32, padding=4),
+            transforms.RandomResizedCrop((299, 299)),
+            # transforms.Resize(256),
+            # transforms.CenterCrop(224),
             transforms.RandomHorizontalFlip(),
             # transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.2),
             transforms.ToTensor(),
             transforms.Normalize(MEAN, STD)
         ])
         valid_transform = transforms.Compose([
+            transforms.Resize((320, 320)),
+            transforms.CenterCrop((299, 299)),
             transforms.ToTensor(),
             transforms.Normalize(MEAN, STD)
         ])
+
 
     if args.cutout:
         train_transform.transforms.append(Cutout(args.cutout_length))
