@@ -51,8 +51,10 @@ def train(args, epoch, train_data, device, model, criterion, optimizer, schedule
     for step, (inputs, targets) in enumerate(train_data):
         inputs, targets = inputs.to(device), targets.to(device)
         optimizer.zero_grad() # 优化器梯度清空
-        outputs = model(inputs) # 计算模型输出
-        print(outputs.shape)
+        if args.exp_name == 'inception_v3':
+            (outputs, aux) = model(inputs) # 计算模型输出
+        else:
+            outputs = model(inputs)
         loss = criterion(outputs, targets)  # 计算损失
         loss.backward() # 梯度反传
         nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip) # 梯度裁剪
@@ -85,7 +87,10 @@ def validate(epoch, val_data, device, model):
     with torch.no_grad():
         for step, (inputs, targets) in enumerate(val_data):
             inputs, targets = inputs.to(device), targets.to(device)
-            outputs = model(inputs)
+            if args.exp_name == 'inception_v3':
+                (outputs, aux) = model(inputs)  # 计算模型输出
+            else:
+                outputs = model(inputs)
             loss = criterion(outputs, targets)
             val_loss += loss.item()
             prec1 = accuracy(outputs, targets, topk=(1, ))
