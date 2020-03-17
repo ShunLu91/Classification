@@ -87,10 +87,7 @@ def validate(epoch, val_data, device, model):
     with torch.no_grad():
         for step, (inputs, targets) in enumerate(val_data):
             inputs, targets = inputs.to(device), targets.to(device)
-            if args.exp_name == 'inception_v3':
-                (outputs, aux) = model(inputs)  # 计算模型输出
-            else:
-                outputs = model(inputs)
+            outputs = model(inputs)
             loss = criterion(outputs, targets)
             val_loss += loss.item()
             prec1 = accuracy(outputs, targets, topk=(1, ))
