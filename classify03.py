@@ -121,8 +121,8 @@ def main():
     elif args.exp_name == 'inception_v3':
         model = models.inception_v3(pretrained=True)
         # 改写全连接类别的输出
-        fc_inputs = model.fc.in_features
-        model.fc = nn.Linear(fc_inputs, args.classes)
+        model.fc = nn.Linear(2048, args.classes)
+        model.AuxLogits.fc = nn.Linear(768, args.classes)
     elif args.exp_name == 'xception':
         model = pretrainedmodels.__dict__['xception'](pretrained='imagenet')
         fc_inputs = 2048
@@ -130,8 +130,6 @@ def main():
             # nn.Dropout(p=0.5),
             nn.Linear(fc_inputs, args.classes)
         )
-
-
 
     # pretrained
     # 如果有预训练模型可以直接加载
@@ -149,11 +147,9 @@ def main():
     flops, params = profile(model, inputs=(torch.randn(1, 3, 224, 224).to(device),), verbose=False)
     print('Model: FLOPs={}M, Params={}M'.format(flops / 1e6, params / 1e6))
 
-    optimizer = torch.optim.SGD(
-        model.parameters(),
-        args.learning_rate,
-        momentum=args.momentum,
-        weight_decay=args.weight_decay)
+    optimizer = torch.optim.SGD(model.parameters(), args.learning_rate,
+                                momentum=args.momentum, weight_decay=args.weight_decay)
+    # optimizer = torch.optim.Adam(model.parameters())
     # 定义学习率衰减策略
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, float(args.epochs), eta_min=args.learning_rate_min, last_epoch=-1)
