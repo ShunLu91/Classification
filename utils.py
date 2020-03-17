@@ -77,8 +77,6 @@ def data_transforms(args):
     if args.dataset == 'imagenet' and args.exp_name is not 'inception_v3':
         train_transform = transforms.Compose([
             transforms.RandomResizedCrop(224),
-            # transforms.Resize(256),
-            # transforms.CenterCrop(224),
             transforms.RandomHorizontalFlip(),
             # transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.2),
             transforms.ToTensor(),
@@ -93,8 +91,6 @@ def data_transforms(args):
     if args.exp_name == 'inception_v3':
         train_transform = transforms.Compose([
             transforms.RandomResizedCrop((299, 299)),
-            # transforms.Resize(256),
-            # transforms.CenterCrop(224),
             transforms.RandomHorizontalFlip(),
             # transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.2),
             transforms.ToTensor(),
