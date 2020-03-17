@@ -10,12 +10,12 @@ from torchsummary import summary
 from thop import profile
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
-from torchvision import datasets, models, transforms
+from torchvision import datasets, models
 from utils import *
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-parser = argparse.ArgumentParser('Train signal model')
+parser = argparse.ArgumentParser('Transfer')
 parser.add_argument('--exp_name', type=str, default='transfer', help='search model name')
 parser.add_argument('--model_name', type=str, default='resnet50', help='search model name')
 parser.add_argument('--classes', type=int, default=9, help='num of MB_layers')
@@ -131,21 +131,6 @@ if __name__ == '__main__':
         cudnn.enabled = True
         device = torch.device("cuda")
 
-
-    image_transforms = {
-        'train30n': transforms.Compose([
-            transforms.RandomResizedCrop(size=224, scale=(0.8, 1.0)),
-            # transforms.RandomRotation(degrees=15),
-            transforms.RandomHorizontalFlip(),
-            # transforms.CenterCrop(size=224),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]),
-        'valid30': transforms.Compose([
-            transforms.Resize(size=256),
-            transforms.CenterCrop(size=224),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])}
-
     train_transform, valid_transform = data_transforms(args)
     train_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'train'), transform=train_transform)
     val_data = datasets.ImageFolder(root=os.path.join(args.data_dir, 'val'), transform=valid_transform)
@@ -154,19 +139,6 @@ if __name__ == '__main__':
     valid_loader = torch.utils.data.DataLoader(val_data, batch_size=args.batch_size,
                                               shuffle=False, num_workers=8, pin_memory=True)
     print('train_data:{}, val_data:{}'.format(len(train_data), len(val_data)))
-
-    # train_directory = os.path.join(args.data_dir, 'train')
-    # valid_directory = os.path.join(args.data_dir, 'val')
-    #
-    # data = {
-    #     'train30n': datasets.ImageFolder(root=train_directory, transform=image_transforms['train30n']),
-    #     'valid30': datasets.ImageFolder(root=valid_directory, transform=image_transforms['valid30'])}
-    #
-    # train_data_size = len(data['train30n'])
-    # valid_data_size = len(data['valid30'])
-    #
-    # train_loader = DataLoader(data['train30n'], batch_size=args.batch_size, shuffle=True, num_workers=8, pin_memory=True)
-    # valid_loader = DataLoader(data['valid30'], batch_size=args.batch_size, shuffle=True, num_workers=8, pin_memory=True)
 
     model = pretrained_model(args.model_name, classes=args.classes)
     model = model.to(device)
@@ -184,7 +156,6 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(model.parameters())
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, float(args.epochs), eta_min=args.learning_rate_min, last_epoch=-1)
-
 
     best_acc = 0.0
     for epoch in range(0, args.epochs):
