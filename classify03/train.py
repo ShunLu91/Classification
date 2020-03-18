@@ -127,7 +127,7 @@ def main():
         model.fc = nn.Linear(2048, args.classes)
         model.AuxLogits.fc = nn.Linear(768, args.classes)
     elif args.exp_name == 'xception':
-        model = pretrainedmodels.__dict__['xception'](pretrained='imagenet', num_classes=3)
+        model = pretrainedmodels.__dict__['xception'](pretrained='imagenet')
         fc_inputs = 2048
         model.last_linear = nn.Sequential(
             # nn.Dropout(p=0.5),
