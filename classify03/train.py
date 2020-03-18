@@ -150,9 +150,9 @@ def main():
     flops, params = profile(model, inputs=(torch.randn(1, 3, 224, 224).to(device),), verbose=False)
     print('Model: FLOPs={}M, Params={}M'.format(flops / 1e6, params / 1e6))
 
-    optimizer = torch.optim.SGD(model.parameters(), args.learning_rate,
-                                momentum=args.momentum, weight_decay=args.weight_decay)
-    # optimizer = torch.optim.Adam(model.parameters())
+    # optimizer = torch.optim.SGD(model.parameters(), args.learning_rate,
+    #                             momentum=args.momentum, weight_decay=args.weight_decay)
+    optimizer = torch.optim.Adam(model.parameters())
     # 定义学习率衰减策略
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, float(args.epochs), eta_min=args.learning_rate_min, last_epoch=-1)
