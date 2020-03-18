@@ -31,7 +31,7 @@ parser.add_argument('--resume', type=bool, default=False, help='resume')
 parser.add_argument('--pretrained', type=str, default=None, help='pretrained')
 # ******************************* dataset *******************************#
 parser.add_argument('--dataset', type=str, default='imagenet', help='[cifar10, imagenet]')
-parser.add_argument('--data_dir', type=str, default='/home/lushun/dataset/lung/Data/', help='dataset dir')
+parser.add_argument('--data_dir', type=str, default=None, help='dataset dir')
 parser.add_argument('--cutout', action='store_true', default=False, help='use cutout')
 parser.add_argument('--cutout_length', type=int, default=16, help='cutout length')
 parser.add_argument('--resize', action='store_true', default=False, help='use resize')
@@ -184,8 +184,8 @@ def main():
 
     best_acc = 0.0
     path = './snapshots/{}_train_states.pt.tar'.format(args.exp_name)
-    if not os.path.exists('./snapshots'):
-        os.mkdir('./snapshots')
+    if not os.path.exists('snapshots'):
+        os.mkdir('snapshots')
     # 开始迭代训练和验证
     for epoch in range(start_epoch, args.epochs):
         t1 = time.time()
