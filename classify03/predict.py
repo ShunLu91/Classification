@@ -42,7 +42,7 @@ if __name__ == '__main__':
     elif args.exp_name == 'xception':
         model = pretrainedmodels.__dict__['xception'](pretrained='imagenet')
         fc_inputs = 2048
-        model.fc = nn.Sequential(
+        model.last_linear = nn.Sequential(
             # nn.Dropout(p=0.5),
             nn.Linear(fc_inputs, args.classes)
         )
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     # load weights
     resume_path = './snapshots/{}_train_states.pt.tar'.format(args.exp_name)
     checkpoint = torch.load(resume_path, map_location=device)
-    model.load_state_dict(checkpoint['supernet_state'])
+    model.load_state_dict(checkpoint['supernet_state'], strict=True)
 
     model = model.to(device)
     model.eval()
