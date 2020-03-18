@@ -1,7 +1,7 @@
 from utils import *
 from PIL import Image
 import torch.nn as nn
-from classify_lung import args
+from train import args
 from torchvision import models
 import torch.backends.cudnn as cudnn
 import pretrainedmodels

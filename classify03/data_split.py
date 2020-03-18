@@ -19,5 +19,5 @@ def moveFile(fileDir):
 
 
 if __name__ == '__main__':
-    data_dir = '/Users/lushun/Documents/dataset/lung/Data'
+    data_dir = '/home/lushun/dataset/lung/Data'
     moveFile(data_dir)

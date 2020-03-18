@@ -14,7 +14,7 @@ from model import MobileNetV2
 # 解析命令行参数
 parser = argparse.ArgumentParser('Train model')
 parser.add_argument('--exp_name', type=str, required=True, help='search model name')
-parser.add_argument('--classes', type=int, default=2, help='num of MB_layers')
+parser.add_argument('--classes', type=int, default=3, help='num of MB_layers')
 parser.add_argument('--batch_size', type=int, default=1, help='batch size')
 parser.add_argument('--epochs', type=int, default=100, help='num of epochs')
 parser.add_argument('--seed', type=int, default=2020, help='seed')
