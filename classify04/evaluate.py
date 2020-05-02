@@ -18,7 +18,7 @@ if __name__ == '__main__':
         device = torch.device("cuda")
 
     train_transform, valid_transform = data_transforms(args)
-    valset = dset.ImageFolder(root=os.path.join(args.data_dir, 'test'), transform=valid_transform)
+    valset = dset.ImageFolder(root=os.path.join(args.data_dir, 'val'), transform=valid_transform)
     valid_queue = torch.utils.data.DataLoader(valset, batch_size=args.batch_size,
                                               shuffle=False, pin_memory=True)
 

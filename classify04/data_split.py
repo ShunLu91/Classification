@@ -26,8 +26,8 @@ def build_remove(source, target):
 if __name__ == '__main__':
     os.chdir("..")
     # 分到train和test中
-    src = '/Users/lushun/Documents/dataset/BreakHis/train'
-    dst = '/Users/lushun/Documents/dataset/BreakHis/val'
+    src = '../dataset/BreakHis/train'
+    dst = '../dataset/BreakHis/val'
     if not os.path.exists(dst):
         os.mkdir(dst)
 

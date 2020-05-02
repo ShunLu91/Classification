@@ -20,7 +20,7 @@ if __name__ == '__main__':
     train_transform, valid_transform = data_transforms(args)
 
     # load img
-    img = Image.open('person1946_bacteria_4874.jpeg').convert("RGB")
+    img = Image.open('an/example/image.png').convert("RGB")
     input = valid_transform(img)
     input = input.unsqueeze(0)
 
