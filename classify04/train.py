@@ -45,23 +45,23 @@ val_writer = SummaryWriter(log_dir='./writer/' + args.exp_name + '/Val')
 
 # 训练代码
 def train(args, epoch, train_data, device, model, criterion, optimizer, scheduler):
-    model.train() # 模型设置为训练模式
+    model.train()  # 模型设置为训练模式
     train_loss = 0.0
-    top1 = AvgrageMeter() # 定义两个精度记录类
+    top1 = AvgrageMeter()  # 定义两个精度记录类
     for step, (inputs, targets) in enumerate(train_data):
         inputs, targets = inputs.to(device), targets.to(device)
-        optimizer.zero_grad() # 优化器梯度清空
+        optimizer.zero_grad()  # 优化器梯度清空
         if args.exp_name == 'inception_v3':
-            (outputs, aux) = model(inputs) # 计算模型输出
+            (outputs, aux) = model(inputs)  # 计算模型输出
         else:
             outputs = model(inputs)
         loss = criterion(outputs, targets)  # 计算损失
-        loss.backward() # 梯度反传
-        nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip) # 梯度裁剪
-        prec1 = accuracy(outputs, targets, topk=(1, )) # 计算准确率
-        n = inputs.size(0) # 输出数据尺寸
-        top1.update(prec1[0], n) # 更新准确率
-        optimizer.step() # 调整模型参数
+        loss.backward()  # 梯度反传
+        nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)  # 梯度裁剪
+        prec1 = accuracy(outputs, targets, topk=(1,))  # 计算准确率
+        n = inputs.size(0)  # 输出数据尺寸
+        top1.update(prec1[0], n)  # 更新准确率
+        optimizer.step()  # 调整模型参数
         train_loss += loss.item()
         dt = datetime.now()
         # 输出显示
@@ -71,7 +71,7 @@ def train(args, epoch, train_data, device, model, criterion, optimizer, schedule
                                                   '%.5f' % scheduler.get_lr()[0],
                                                   '%.6f' % loss, '%.3f' % top1.avg))
         sys.stdout.flush()
-    train_writer.add_scalar('Loss', train_loss / (step + 1), epoch) # tensorboard文档写入
+    train_writer.add_scalar('Loss', train_loss / (step + 1), epoch)  # tensorboard文档写入
     train_writer.add_scalar('Acc', top1.avg, epoch)
 
     return train_loss / (step + 1), top1.avg
@@ -90,7 +90,7 @@ def validate(epoch, val_data, device, model):
             outputs = model(inputs)
             loss = criterion(outputs, targets)
             val_loss += loss.item()
-            prec1 = accuracy(outputs, targets, topk=(1, ))
+            prec1 = accuracy(outputs, targets, topk=(1,))
             n = inputs.size(0)
             val_top1.update(prec1[0], n)
     val_writer.add_scalar('Loss', val_loss / (step + 1), epoch)
@@ -161,10 +161,10 @@ def main():
     trainset = dset.ImageFolder(root=os.path.join(args.data_dir, 'train'), transform=train_transform)
     print('INFO:', trainset.class_to_idx)
     train_queue = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
-                                              shuffle=True, num_workers=8, pin_memory=True)
+                                              shuffle=True, num_workers=16, pin_memory=True)
     valset = dset.ImageFolder(root=os.path.join(args.data_dir, 'val'), transform=valid_transform)
     valid_queue = torch.utils.data.DataLoader(valset, batch_size=args.batch_size,
-                                              shuffle=False, num_workers=8, pin_memory=True)
+                                              shuffle=False, num_workers=16, pin_memory=True)
     print('Dataset: Train={}, Val={}'.format(len(trainset), len(valset)))
 
     # 如果要继续上次的训练，可以加载上次训练保存的模型（类似加载预训练模型）
@@ -220,8 +220,8 @@ def main():
 
 if __name__ == '__main__':
     # 程序从这里开始运行
-    start = time.time() # 记录时间
-    main() # 主函数
+    start = time.time()  # 记录时间
+    main()  # 主函数
     # tensorboard文档关闭
     train_writer.close()
     val_writer.close()
