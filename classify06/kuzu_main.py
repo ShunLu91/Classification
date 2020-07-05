@@ -96,7 +96,7 @@ def main():
     # Define a transform to normalize the data
     transform = transforms.Compose([transforms.ToTensor(),
                                     transforms.Normalize((0.5,), (0.5,)),
-                                    Cutout(16)])
+                                    Cutout(8)])
 
     # Fetch and load the training data
     trainset = datasets.KMNIST(root='./data', train=True, download=True, transform=transform)
