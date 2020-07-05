@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class NetLin(nn.Module):
     # linear function followed by log_softmax
     def __init__(self):
@@ -16,6 +17,7 @@ class NetLin(nn.Module):
         x = x.view(x.size()[0], -1)
         x = self.linear(x)
         return F.log_softmax(x)
+
 
 class NetFull(nn.Module):
     # two fully connected tanh layers followed by log softmax
@@ -32,6 +34,7 @@ class NetFull(nn.Module):
 
         return F.log_softmax(x)
 
+
 class NetConv(nn.Module):
     # two convolutional layers and one fully connected layer,
     # all using relu, followed by log_softmax
@@ -41,6 +44,7 @@ class NetConv(nn.Module):
         self.conv2 = nn.Sequential(nn.Conv2d(32, 64, 3, 2, 1), nn.BatchNorm2d(64), nn.ReLU())
         self.dropout = nn.Dropout(0.7)
         self.fc = nn.Sequential(nn.Linear(64 * 7 * 7, 10))
+
     def forward(self, x):
         x = self.conv1(x)
         x = self.conv2(x)
