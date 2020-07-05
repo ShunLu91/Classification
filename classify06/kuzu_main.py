@@ -59,7 +59,7 @@ def main():
     # Training settings
     parser = argparse.ArgumentParser()
     parser.add_argument('--net', type=str, default='conv', help='lin, full or conv')
-    parser.add_argument('--lr', type=float, default=0.02, help='learning rate')
+    parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
     parser.add_argument('--mom', type=float, default=0.5, help='momentum')
     parser.add_argument('--epochs', type=int, default=10, help='number of training epochs')
     parser.add_argument('--no_cuda', action='store_true', default=False, help='disables CUDA')
@@ -77,11 +77,11 @@ def main():
 
     # Fetch and load the training data
     trainset = datasets.KMNIST(root='./data', train=True, download=True, transform=transform)
-    train_loader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=False)
+    train_loader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=False)
 
     # Fetch and load the test data
     testset = datasets.KMNIST(root='./data', train=False, download=True, transform=transform)
-    test_loader = torch.utils.data.DataLoader(testset, batch_size=64, shuffle=False)
+    test_loader = torch.utils.data.DataLoader(testset, batch_size=128, shuffle=False)
 
     if args.net == 'lin':
         net = NetLin().to(device)
