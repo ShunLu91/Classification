@@ -55,6 +55,28 @@ def test(args, model, device, test_loader):
         100. * correct / len(test_loader.dataset)))
 
 
+class Cutout(object):
+    def __init__(self, length):
+        self.length = length
+
+    def __call__(self, img):
+        h, w = img.size(1), img.size(2)
+        mask = np.ones((h, w), np.float32)
+        y = np.random.randint(h)
+        x = np.random.randint(w)
+
+        y1 = np.clip(y - self.length // 2, 0, h)
+        y2 = np.clip(y + self.length // 2, 0, h)
+        x1 = np.clip(x - self.length // 2, 0, w)
+        x2 = np.clip(x + self.length // 2, 0, w)
+
+        mask[y1: y2, x1: x2] = 0.
+        mask = torch.from_numpy(mask)
+        mask = mask.expand_as(img)
+        img *= mask
+        return img
+
+
 def main():
     # Training settings
     parser = argparse.ArgumentParser()
@@ -73,7 +95,8 @@ def main():
 
     # Define a transform to normalize the data
     transform = transforms.Compose([transforms.ToTensor(),
-                                    transforms.Normalize((0.5,), (0.5,))])
+                                    transforms.Normalize((0.5,), (0.5,)),
+                                    Cutout(16)])
 
     # Fetch and load the training data
     trainset = datasets.KMNIST(root='./data', train=True, download=True, transform=transform)
@@ -91,7 +114,7 @@ def main():
         net = NetConv().to(device)
     #
     if list(net.parameters()):
-        optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.mom, weight_decay=1e-2)
+        optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.mom, weight_decay=1e-3)
 
         for epoch in range(1, args.epochs + 1):
             train(args, net, device, train_loader, optimizer, epoch)
