@@ -95,12 +95,11 @@ def main():
 
     # Define a transform to normalize the data
     transform = transforms.Compose([transforms.ToTensor(),
-                                    transforms.Normalize((0.5,), (0.5,)),
-                                    Cutout(8)])
+                                    transforms.Normalize((0.5,), (0.5,))])
 
     # Fetch and load the training data
     trainset = datasets.KMNIST(root='./data', train=True, download=True, transform=transform)
-    train_loader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=False)
+    train_loader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True)
 
     # Fetch and load the test data
     testset = datasets.KMNIST(root='./data', train=False, download=True, transform=transform)
