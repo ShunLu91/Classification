@@ -40,7 +40,7 @@ class NetConv(nn.Module):
     # all using relu, followed by log_softmax
     def __init__(self):
         super(NetConv, self).__init__()
-        channel = [96, 144]
+        channel = [96, 192]
         self.conv1 = nn.Sequential(nn.Conv2d(1, channel[0], 3, 2, 1), nn.BatchNorm2d(channel[0]), nn.ReLU())
         self.conv2 = nn.Sequential(nn.Conv2d(channel[0], channel[1], 3, 2, 1), nn.BatchNorm2d(channel[1]), nn.ReLU())
         self.dropout = nn.Dropout()
