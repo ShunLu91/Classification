@@ -41,7 +41,7 @@ class NetConv(nn.Module):
     def __init__(self):
         super(NetConv, self).__init__()
         self.conv1 = nn.Sequential(nn.Conv2d(1, 16, 3, 2, 1), nn.BatchNorm2d(16), nn.ReLU())
-        self.conv2 = nn.Sequential(nn.Conv2d(16, 32, 3, 2, 1), nn.BatchNorm2d(32), nn.ReLU())
+        self.conv2 = nn.Sequential(nn.Conv2d(16, 32, 5, 2, 1), nn.BatchNorm2d(32), nn.ReLU())
         # self.dropout = nn.Dropout()
         self.fc = nn.Sequential(nn.Linear(32 * 7 * 7, 10), nn.ReLU())
 
