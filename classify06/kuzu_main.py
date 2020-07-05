@@ -114,12 +114,9 @@ def main():
     #
     if list(net.parameters()):
         optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.mom, weight_decay=1e-3)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, float(args.epochs), eta_min=0.0001, last_epoch=-1)
         for epoch in range(1, args.epochs + 1):
             train(args, net, device, train_loader, optimizer, epoch)
             test(args, net, device, test_loader)
-            scheduler.step()
 
 if __name__ == '__main__':
     main()
