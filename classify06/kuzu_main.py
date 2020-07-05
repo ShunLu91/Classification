@@ -91,7 +91,7 @@ def main():
         net = NetConv().to(device)
     #
     if list(net.parameters()):
-        optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.mom)
+        optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.mom, weight_decay=1e-4)
 
         for epoch in range(1, args.epochs + 1):
             train(args, net, device, train_loader, optimizer, epoch)
