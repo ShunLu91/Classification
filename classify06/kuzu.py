@@ -56,13 +56,13 @@ class NetConv(nn.Module):
         self.dropout = nn.Dropout()
         # self.fc = nn.Sequential(nn.Linear(channel[1] * 7 * 7, 10), nn.ReLU())
         self.fc = nn.Sequential(
-            nn.Linear(16 * 5 * 5, 120),
-            nn.BatchNorm1d(120),
-            nn.ReLU(),
+            nn.Linear(16 * 5 * 5, 10),
+            # nn.BatchNorm1d(120),
+            # nn.ReLU(),
             # nn.Linear(120, 84),
             # nn.BatchNorm1d(84),
             # nn.ReLU(),
-            nn.Linear(120, 10)
+            # nn.Linear(120, 10)
         )
 
     def forward(self, x):
