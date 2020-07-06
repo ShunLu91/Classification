@@ -54,22 +54,15 @@ class NetConv(nn.Module):
             nn.MaxPool2d(2, 2)
         )
         self.dropout = nn.Dropout()
-        # self.fc = nn.Sequential(nn.Linear(channel[1] * 7 * 7, 10), nn.ReLU())
         self.fc = nn.Sequential(
             nn.Linear(64 * 5 * 5, 10),
             nn.BatchNorm1d(10),
             nn.ReLU(),
-            # nn.Linear(120, 84),
-            # nn.BatchNorm1d(84),
-            # nn.ReLU(),
-            # nn.Linear(120, 10)
         )
 
     def forward(self, x):
-        # x = self.conv1(x)
-        # x = self.conv2(x)
         x = self.conv(x)
         x = x.view(x.size()[0], -1)
-        # x = self.dropout(x)
+        x = self.dropout(x)
         x = self.fc(x)
         return F.log_softmax(x)
