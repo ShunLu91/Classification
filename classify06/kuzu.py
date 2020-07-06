@@ -48,7 +48,7 @@ class NetConv(nn.Module):
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
-            nn.Conv2d(6, 64, 5),
+            nn.Conv2d(32, 64, 5),
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(2, 2)
