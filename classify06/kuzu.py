@@ -48,17 +48,17 @@ class NetConv(nn.Module):
             nn.BatchNorm2d(6),
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
-            nn.Conv2d(6, 16, 5),
-            nn.BatchNorm2d(16),
+            nn.Conv2d(6, 32, 5),
+            nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(2, 2)
         )
         self.dropout = nn.Dropout()
         # self.fc = nn.Sequential(nn.Linear(channel[1] * 7 * 7, 10), nn.ReLU())
         self.fc = nn.Sequential(
-            nn.Linear(16 * 5 * 5, 10),
-            # nn.BatchNorm1d(120),
-            # nn.ReLU(),
+            nn.Linear(32 * 5 * 5, 10),
+            nn.BatchNorm1d(10),
+            nn.ReLU(),
             # nn.Linear(120, 84),
             # nn.BatchNorm1d(84),
             # nn.ReLU(),
