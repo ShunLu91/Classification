@@ -41,15 +41,33 @@ class NetConv(nn.Module):
     def __init__(self):
         super(NetConv, self).__init__()
         channel = [96, 144]
-        self.conv1 = nn.Sequential(nn.Conv2d(1, channel[0], 3, 1, 1), nn.BatchNorm2d(channel[0]), nn.ReLU())
-        self.conv2 = nn.Sequential(nn.Conv2d(channel[0], channel[1], 3, 1, 1), nn.BatchNorm2d(channel[1]), nn.ReLU())
+        # self.conv1 = nn.Sequential(nn.Conv2d(1, channel[0], 3, 1, 1), nn.BatchNorm2d(channel[0]), nn.ReLU())
+        # self.conv2 = nn.Sequential(nn.Conv2d(channel[0], channel[1], 3, 1, 1), nn.BatchNorm2d(channel[1]), nn.ReLU())
+        self.conv = nn.Sequential(
+            nn.Conv2d(1, 6, 3, 1, 2),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            nn.Conv2d(6, 16, 5),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2)
+        )
         self.dropout = nn.Dropout()
-        self.fc = nn.Sequential(nn.Linear(channel[1] * 28 * 28, 10), nn.ReLU())
+        # self.fc = nn.Sequential(nn.Linear(channel[1] * 7 * 7, 10), nn.ReLU())
+        self.fc = nn.Sequential(
+            nn.Linear(16 * 5 * 5, 120),
+            nn.BatchNorm1d(120),
+            nn.ReLU(),
+            nn.Linear(120, 84),
+            nn.BatchNorm1d(84),
+            nn.ReLU(),
+            nn.Linear(84, 10)
+        )
 
     def forward(self, x):
-        x = self.conv1(x)
-        x = self.conv2(x)
+        # x = self.conv1(x)
+        # x = self.conv2(x)
+        x = self.conv(x)
         x = x.view(x.size()[0], -1)
-        x = self.dropout(x)
+        # x = self.dropout(x)
         x = self.fc(x)
         return F.log_softmax(x)
