@@ -40,9 +40,6 @@ class NetConv(nn.Module):
     # all using relu, followed by log_softmax
     def __init__(self):
         super(NetConv, self).__init__()
-        channel = [96, 144]
-        # self.conv1 = nn.Sequential(nn.Conv2d(1, channel[0], 3, 1, 1), nn.BatchNorm2d(channel[0]), nn.ReLU())
-        # self.conv2 = nn.Sequential(nn.Conv2d(channel[0], channel[1], 3, 1, 1), nn.BatchNorm2d(channel[1]), nn.ReLU())
         self.conv = nn.Sequential(
             nn.Conv2d(1, 32, 3, 1, 2),
             nn.BatchNorm2d(32),
@@ -53,7 +50,6 @@ class NetConv(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(2, 2)
         )
-        self.dropout = nn.Dropout()
         self.fc = nn.Sequential(
             nn.Linear(64 * 5 * 5, 10),
             nn.BatchNorm1d(10),
@@ -63,6 +59,5 @@ class NetConv(nn.Module):
     def forward(self, x):
         x = self.conv(x)
         x = x.view(x.size()[0], -1)
-        x = self.dropout(x)
         x = self.fc(x)
         return F.log_softmax(x)
