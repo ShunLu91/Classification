@@ -41,10 +41,12 @@ class NetConv(nn.Module):
     def __init__(self):
         super(NetConv, self).__init__()
         self.conv = nn.Sequential(
+            # conv1
             nn.Conv2d(1, 32, 3, 1, 2),
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
+            # conv2
             nn.Conv2d(32, 64, 5),
             nn.BatchNorm2d(64),
             nn.ReLU(),
