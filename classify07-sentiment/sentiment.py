@@ -215,7 +215,7 @@ if __name__ == '__main__':
             loss = criterion(outputs, targets)
             loss.backward()
             prec = accuracy(outputs, targets, topk=(1,))
-            acc.add(prec[0])
+            acc.add(prec[0].cpu())
             optimizer.step()
             train_loss.add(loss.item())
             # train_acc += accuracy_score(torch.argmax(outputs.cpu().data, dim=1), targets.cpu())
