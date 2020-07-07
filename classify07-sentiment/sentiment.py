@@ -26,12 +26,12 @@ class CONFIG:
     filter_sizes = '3,4,5'
     kernel_size = 4
     save_dir = './checkpoints/'
-    train_path = './data/sentiment/train.txt'
-    dev_path = './data/sentiment/dev.txt'
-    test_path = './data/sentiment/test.txt'
-    word2id_path = './data/sentiment/word2id.txt'
-    pre_word2vec_path = './data/sentiment/wiki_word2vec_50.bin'
-    corpus_word2vec_path = './data/sentiment/word2vec.txt'
+    train_path = './sentiment/train.txt'
+    dev_path = './sentiment/dev.txt'
+    test_path = './sentiment/test.txt'
+    word2id_path = './sentiment/word2id.txt'
+    pre_word2vec_path = './sentiment/wiki_word2vec_50.bin'
+    corpus_word2vec_path = './sentiment/word2vec.txt'
 
 
 def build_word2id(file):
