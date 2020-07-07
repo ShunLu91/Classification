@@ -240,7 +240,7 @@ if __name__ == '__main__':
                 loss = criterion(outputs, targets)
                 val_loss.add(loss.item())
                 prec = accuracy(outputs, targets, topk=(1,))
-                val_acc.add(prec[0])
+                val_acc.add(prec[0].cpu())
         print('\nval_acc: {:.3f}, val_loss: {:.3f}'.format(val_acc.mean, val_loss.mean))
 
     test_loss = meter.AverageValueMeter()
@@ -254,7 +254,7 @@ if __name__ == '__main__':
             loss = criterion(outputs, targets)
             test_loss.add(loss.item())
             prec = accuracy(outputs, targets, topk=(1,))
-            test_acc.add(prec[0])
+            test_acc.add(prec[0].cpu())
             test_label.extend(targets.cpu().numpy().tolist())
             test_pre.extend(outputs.cpu().numpy().argmax(axis=1).tolist())
     print('test_acc: {:.3f}, test_loss: {:.3f}'.format(test_acc.mean, test_loss.mean))
