@@ -230,18 +230,19 @@ if __name__ == '__main__':
             )
             sys.stdout.flush()
 
-        net.eval()
-        val_loss = meter.AverageValueMeter()
-        val_acc = meter.AverageValueMeter()
-        with torch.no_grad():
-            for step, (inputs, targets) in enumerate(valid_queue):
-                inputs, targets = inputs.to(device), targets.to(device)
-                outputs = net(inputs)
-                loss = criterion(outputs, targets)
-                val_loss.add(loss.item())
-                prec = accuracy(outputs, targets, topk=(1,))
-                val_acc.add(prec[0].cpu())
-        print('\nval_acc: {:.3f}, val_loss: {:.3f}'.format(val_acc.mean, val_loss.mean))
+        # net.eval()
+        # val_loss = meter.AverageValueMeter()
+        # val_acc = meter.AverageValueMeter()
+        # with torch.no_grad():
+        #     for step, (inputs, targets) in enumerate(valid_queue):
+        #         inputs, targets = inputs.to(device), targets.to(device)
+        #         outputs = net(inputs)
+        #         loss = criterion(outputs, targets)
+        #         loss.backward()
+        #         val_loss.add(loss.item())
+        #         prec = accuracy(outputs, targets, topk=(1,))
+        #         val_acc.add(prec[0].cpu())
+        # print('\nval_acc: {:.3f}, val_loss: {:.3f}'.format(val_acc.mean, val_loss.mean))
 
     test_loss = meter.AverageValueMeter()
     test_acc = meter.AverageValueMeter()
