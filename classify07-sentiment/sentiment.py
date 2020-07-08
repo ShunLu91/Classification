@@ -16,7 +16,7 @@ class CONFIG:
     n_class = 2  # 分类数：分别为pos和neg
     max_sen_len = 75  # 句子最大长度
     embedding_dim = 50  # 词向量维度
-    batch_size = 1000  # 批处理尺寸
+    batch_size = 4000  # 批处理尺寸
     n_hidden = 256  # 隐藏层节点数
     n_epoch = 10  # 训练迭代周期，即遍历整个训练样本的次数
     opt = 'adam'  # 训练优化器：adam
