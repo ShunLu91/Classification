@@ -189,7 +189,10 @@ if __name__ == '__main__':
     valid_data = read_data(CONFIG.dev_path, word2id_dict)
     test_data = read_data(CONFIG.test_path, word2id_dict)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    net = TextCNN(CONFIG).to(device)
+    net = TextCNN(CONFIG)
+    net = nn.DataParallel(net, device_ids=[0, 1, 2, 3])
+    net = net.cuda()
+
     train_set = Set(train_data, mode='train')
     valid_set = Set(valid_data, mode='valid')
     test_set = Set(test_data, mode='test')
@@ -230,19 +233,19 @@ if __name__ == '__main__':
             )
             sys.stdout.flush()
 
-        # net.eval()
-        # val_loss = meter.AverageValueMeter()
-        # val_acc = meter.AverageValueMeter()
-        # with torch.no_grad():
-        #     for step, (inputs, targets) in enumerate(valid_queue):
-        #         inputs, targets = inputs.to(device), targets.to(device)
-        #         outputs = net(inputs)
-        #         loss = criterion(outputs, targets)
-        #         loss.backward()
-        #         val_loss.add(loss.item())
-        #         prec = accuracy(outputs, targets, topk=(1,))
-        #         val_acc.add(prec[0].cpu())
-        # print('\nval_acc: {:.3f}, val_loss: {:.3f}'.format(val_acc.mean, val_loss.mean))
+        net.eval()
+        val_loss = meter.AverageValueMeter()
+        val_acc = meter.AverageValueMeter()
+        with torch.no_grad():
+            for step, (inputs, targets) in enumerate(valid_queue):
+                inputs, targets = inputs.to(device), targets.to(device)
+                outputs = net(inputs)
+                loss = criterion(outputs, targets)
+                loss.backward()
+                val_loss.add(loss.item())
+                prec = accuracy(outputs, targets, topk=(1,))
+                val_acc.add(prec[0].cpu())
+        print('\nval_acc: {:.3f}, val_loss: {:.3f}'.format(val_acc.mean, val_loss.mean))
 
     test_loss = meter.AverageValueMeter()
     test_acc = meter.AverageValueMeter()
