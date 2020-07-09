@@ -207,7 +207,7 @@ if __name__ == '__main__':
 
     CONFIG.word2_vec = np.loadtxt(CONFIG.corpus_word2vec_path)
 
-    # train_data = read_data(CONFIG.train_path, word2id_dict)
+    train_data = read_data(CONFIG.train_path, word2id_dict)
     valid_data = read_data(CONFIG.dev_path, word2id_dict)
     test_data = read_data(CONFIG.test_path, word2id_dict)
 
@@ -216,45 +216,45 @@ if __name__ == '__main__':
     net = nn.DataParallel(net, device_ids=[0, 1, 2, 3])
     net = net.cuda()
 
-    # train_set = Set(train_data, mode='train')
+    train_set = Set(train_data, mode='train')
     valid_set = Set(valid_data, mode='valid')
     test_set = Set(test_data, mode='test')
-    # train_queue = DataLoader(train_set, batch_size=CONFIG.batch_size, shuffle=True, num_workers=8, pin_memory=True)
+    train_queue = DataLoader(train_set, batch_size=CONFIG.batch_size, shuffle=True, num_workers=8, pin_memory=True)
     valid_queue = DataLoader(valid_set, batch_size=CONFIG.batch_size, shuffle=False, num_workers=8, pin_memory=True)
     test_queue = DataLoader(test_set, batch_size=CONFIG.batch_size, shuffle=False, num_workers=8, pin_memory=True)
-    # print('Dataset: Train={}'.format(len(train_set)))
+    print('Dataset: Train={}, Val={}, Test={}'.format(len(train_set), len(valid_set), len(test_set)))
 
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=CONFIG.learning_rate, weight_decay=3e-4)
 
     for epoch in range(CONFIG.n_epoch):
-        # train_acc = 0
-        # n = 0
-        # net.train()
-        # train_loss = meter.AverageValueMeter()
-        # acc = meter.AverageValueMeter()
-        # for step, (inputs, targets) in enumerate(train_queue):
-        #     n += 1
-        #     inputs, targets = inputs.to(device), targets.to(device)
-        #     optimizer.zero_grad()
-        #     outputs = net(inputs)
-        #     loss = criterion(outputs, targets)
-        #     loss.backward()
-        #     prec = accuracy(outputs, targets, topk=(1,))
-        #     acc.add(prec[0].cpu())
-        #     optimizer.step()
-        #     train_loss.add(loss.item())
-        #     # train_acc += accuracy_score(torch.argmax(outputs.cpu().data, dim=1), targets.cpu())
-        #     sys.stdout.write(
-        #         '\r(Epoch: {epoch}/{n_epoch} | Batch: {batch}/{size}) | Loss: {loss:.4f} | train_acc: {acc: .4f}'.format(
-        #             epoch=epoch,
-        #             n_epoch=CONFIG.n_epoch,
-        #             batch=step + 1,
-        #             size=len(train_queue),
-        #             loss=train_loss.mean,
-        #             acc=acc.mean)
-        #     )
-        #     sys.stdout.flush()
+        train_acc = 0
+        n = 0
+        net.train()
+        train_loss = meter.AverageValueMeter()
+        acc = meter.AverageValueMeter()
+        for step, (inputs, targets) in enumerate(train_queue):
+            n += 1
+            inputs, targets = inputs.to(device), targets.to(device)
+            optimizer.zero_grad()
+            outputs = net(inputs)
+            loss = criterion(outputs, targets)
+            loss.backward()
+            prec = accuracy(outputs, targets, topk=(1,))
+            acc.add(prec[0].cpu())
+            optimizer.step()
+            train_loss.add(loss.item())
+            # train_acc += accuracy_score(torch.argmax(outputs.cpu().data, dim=1), targets.cpu())
+            sys.stdout.write(
+                '\r(Epoch: {epoch}/{n_epoch} | Batch: {batch}/{size}) | Loss: {loss:.4f} | train_acc: {acc: .4f}'.format(
+                    epoch=epoch,
+                    n_epoch=CONFIG.n_epoch,
+                    batch=step + 1,
+                    size=len(train_queue),
+                    loss=train_loss.mean,
+                    acc=acc.mean)
+            )
+            sys.stdout.flush()
 
         net.eval()
         val_loss = meter.AverageValueMeter()
