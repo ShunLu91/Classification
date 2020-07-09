@@ -9,13 +9,10 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from torchnet import meter
 import torch.nn.functional as F
+from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence, pad_packed_sequence
 from sklearn import metrics
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
-from transformers import BertTokenizer
-from transformers import BertForSequenceClassification
-from transformers import BertConfig
-from transformers import BertPreTrainedModel
 
 
 class CONFIG:
@@ -23,15 +20,16 @@ class CONFIG:
     n_class = 2  # 分类数：分别为pos和neg
     max_sen_len = 30  # 句子最大长度 # train:187 # val:192 # test:156
     embedding_dim = 50  # 词向量维度
-    batch_size = 4000  # 批处理尺寸
+    batch_size = 2000  # 批处理尺寸
     n_hidden = 256  # 隐藏层节点数
     n_epoch = 100  # 训练迭代周期，即遍历整个训练样本的次数
     opt = 'adam'  # 训练优化器：adam
     learning_rate = 0.025
-    # drop_keep_prob = 0.1  # dropout层，参数keep的比例
+    drop_prob = 0.1  # dropout层，参数keep的比例
     num_filters = 512  # 卷积层filter的数量
     filter_sizes = '3,4,5'
     kernel_size = 4
+    LSTM_layers = 3
     save_dir = './checkpoints/'
     train_path = '../dataset/sentiment/train.txt'
     dev_path = '../dataset/sentiment/dev.txt'
@@ -131,7 +129,6 @@ def read_data(path, word_dict, mode):
     return data
 
 
-
 class Set(Dataset):
     def __init__(self, data, mode):
         super(Set, self).__init__()
@@ -197,6 +194,70 @@ class TextCNN(nn.Module):
         return logits
 
 
+# def pre_weight(vocab_size):
+#     weight = torch.zeros(vocab_size, CONFIG.embedding_dim)
+#     #初始权重
+#     for i in range(len(word2vec_model.index2word)):#预训练中没有word2ix，所以只能用索引来遍历
+#         try:
+#             index = word2ix[word2vec_model.index2word[i]]#得到预训练中的词汇的新索引
+#         except:
+#             continue
+#         weight[index, :] = torch.from_numpy(word2vec_model.get_vector(
+#             ix2word[word2ix[word2vec_model.index2word[i]]]))#得到对应的词向量
+#     return weight
+
+
+class SentimentModel(nn.Module):
+    def __init__(self):
+        super(SentimentModel, self).__init__()
+        self.hidden_dim = CONFIG.n_hidden
+
+        embedding_dim = CONFIG.embedding_dim
+        word_vec = torch.from_numpy(CONFIG.word2_vec)
+        self.embedding = nn.Embedding(CONFIG.vocab_size, CONFIG.embedding_dim, _weight=word_vec)
+
+        # requires_grad指定是否在训练过程中对词向量的权重进行微调
+        self.embedding.weight.requires_grad = True
+        self.lstm = nn.LSTM(embedding_dim, self.hidden_dim, num_layers=CONFIG.LSTM_layers,
+                            batch_first=True, dropout=CONFIG.drop_prob, bidirectional=False)
+        self.dropout = nn.Dropout(CONFIG.drop_prob)
+        self.fc1 = nn.Linear(7680, 256)
+        self.fc2 = nn.Linear(256, 32)
+        self.fc3 = nn.Linear(32, 2)
+
+    #   self.linear = nn.Linear(self.hidden_dim, vocab_size)# 输出的大小是词表的维度，
+
+    def forward(self, input, hidden=None):
+
+        embeds = self.embedding(input).float()  # [batch, seq_len] => [batch, seq_len, embed_dim]
+        # embeds = pack_padded_sequence(embeds, CONFIG.max_sen_len, batch_first=True)
+        batch_size, seq_len = input.size()
+        if hidden is None:
+            h_0 = input.data.new(CONFIG.LSTM_layers * 1, batch_size, self.hidden_dim).fill_(0).float()
+            c_0 = input.data.new(CONFIG.LSTM_layers * 1, batch_size, self.hidden_dim).fill_(0).float()
+        else:
+            h_0, c_0 = hidden
+        # print('embeds.shape:', embeds.shape)
+        output, hidden = self.lstm(embeds, (h_0, c_0))  # hidden 是h,和c 这两个隐状态
+        # output, _ = pad_packed_sequence(output, batch_first=True)
+        # print('output.shape:', output.shape)
+        x = output.reshape((output.shape[0], -1))
+        # print('x.shape:', x.shape)
+        output = self.dropout(torch.tanh(self.fc1(x)))
+        output = torch.tanh(self.fc2(output))
+        output = self.fc3(output)
+        # last_outputs = self.get_last_output(output, CONFIG.max_sen_len)
+        # output = output.reshape(batch_size * seq_len, -1)
+        return output
+
+    def get_last_output(self, output, batch_seq_len):
+        last_outputs = torch.zeros((output.shape[0], output.shape[2]))
+        for i in range(len(batch_seq_len)):
+            last_outputs[i] = output[i][batch_seq_len[i] - 1]  # index 是长度 -1
+        last_outputs = last_outputs.to(output.device)
+        return last_outputs
+
+
 if __name__ == '__main__':
     # 首先生成word2id
     # build_word2id()
@@ -216,13 +277,19 @@ if __name__ == '__main__':
 
     CONFIG.word2_vec = np.loadtxt(CONFIG.corpus_word2vec_path)
 
+    # word2vec加载
+    # word2vec_model = gensim.models.KeyedVectors.load_word2vec_format(CONFIG.word2_vec, binary=True)
+
     # train_data = read_data(CONFIG.train_path, word2id_dict, mode='train')
     # valid_data = read_data(CONFIG.dev_path, word2id_dict, mode='valid')
     # test_data = read_data(CONFIG.test_path, word2id_dict, mode='test')
 
-    train_data = np.load(os.path.join(CONFIG.data_save_dir, '{}_max{}_data.npy'.format('train', CONFIG.max_sen_len)), allow_pickle=True).item()
-    valid_data = np.load(os.path.join(CONFIG.data_save_dir, '{}_max{}_data.npy'.format('valid', CONFIG.max_sen_len)), allow_pickle=True).item()
-    test_data = np.load(os.path.join(CONFIG.data_save_dir, '{}_max{}_data.npy'.format('test', CONFIG.max_sen_len)), allow_pickle=True).item()
+    train_data = np.load(os.path.join(CONFIG.data_save_dir, '{}_max{}_data.npy'.format('train', CONFIG.max_sen_len)),
+                         allow_pickle=True).item()
+    valid_data = np.load(os.path.join(CONFIG.data_save_dir, '{}_max{}_data.npy'.format('valid', CONFIG.max_sen_len)),
+                         allow_pickle=True).item()
+    test_data = np.load(os.path.join(CONFIG.data_save_dir, '{}_max{}_data.npy'.format('test', CONFIG.max_sen_len)),
+                        allow_pickle=True).item()
 
     train_set = Set(train_data, mode='train')
     valid_set = Set(valid_data, mode='valid')
@@ -233,7 +300,8 @@ if __name__ == '__main__':
     print('Dataset: Train={}, Val={}, Test={}'.format(len(train_set), len(valid_set), len(test_set)))
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = TextCNN(CONFIG)
+    # model = TextCNN(CONFIG)
+    model = SentimentModel()
     # model = BertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=CONFIG.n_class)
     model = nn.DataParallel(model, device_ids=[0, 1, 2, 3])
     model = model.cuda()
@@ -252,6 +320,7 @@ if __name__ == '__main__':
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
+            # print('outputs', outputs.shape)
             loss = criterion(outputs, targets)
             loss.backward()
             prec = accuracy(outputs, targets, topk=(1,))
