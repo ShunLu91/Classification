@@ -1,3 +1,4 @@
+import os
 import sys
 import jieba
 import gensim
@@ -16,13 +17,13 @@ from sklearn.metrics import accuracy_score
 class CONFIG:
     vocab_size = 146214  # 词汇量，与word2id中的词汇量一致
     n_class = 2  # 分类数：分别为pos和neg
-    max_sen_len = 75  # 句子最大长度 # train:187 # val:192 # test:156
+    max_sen_len = 30  # 句子最大长度 # train:187 # val:192 # test:156
     embedding_dim = 50  # 词向量维度
-    batch_size = 2000  # 批处理尺寸
+    batch_size = 4000  # 批处理尺寸
     n_hidden = 256  # 隐藏层节点数
     n_epoch = 10  # 训练迭代周期，即遍历整个训练样本的次数
     opt = 'adam'  # 训练优化器：adam
-    learning_rate = 0.001
+    learning_rate = 0.025
     drop_keep_prob = 0.1  # dropout层，参数keep的比例
     num_filters = 256  # 卷积层filter的数量
     filter_sizes = '3,4,5'
@@ -34,6 +35,7 @@ class CONFIG:
     word2id_path = '../dataset/sentiment/word2id.txt'
     pre_word2vec_path = '../dataset/sentiment/wiki_word2vec_50.bin'
     corpus_word2vec_path = '../dataset/sentiment/word2vec.txt'
+    data_save_dir = '../dataset/sentiment/'
 
 
 def build_word2id():
@@ -92,10 +94,9 @@ def build_word2vec(fname, word2id, save_to_path=None):
     return word_vecs
 
 
-def read_data(path, word_dict):
-    max_len = 0
+def read_data(path, word_dict, mode):
     step = 0
-    data = {'comment': [], 'label': []}
+    data = {'comment': [], 'label': [], 'max_len': 0}
     with open(path, 'r') as f:
         for line in f:
             sp = line.strip().split()[1] + line.strip().split()[2]
@@ -106,8 +107,8 @@ def read_data(path, word_dict):
                 for _w in words:
                     line_vec.append(word_dict.get(_w))
                 # 每条评论不等长的处理
-                if len(line_vec) > max_len:
-                    max_len = len(line_vec)
+                if len(line_vec) > data['max_len']:
+                    data['max_len'] = len(line_vec)
                 while len(line_vec) < CONFIG.max_sen_len:
                     line_vec.append(0)
                 if len(line_vec) > CONFIG.max_sen_len:
@@ -118,7 +119,11 @@ def read_data(path, word_dict):
             step += 1
             if step % 10000 == 0:
                 print('current step:{}'.format(step))
-    print('max_len: {}'.format(max_len))
+    print('max_len: {}'.format(data['max_len']))
+
+    # save
+    np.save(os.path.join(CONFIG.data_save_dir, '{}_max{}_data.npy'.format(mode, CONFIG.max_sen_len)), data)
+
     return data
 
 
@@ -207,14 +212,13 @@ if __name__ == '__main__':
 
     CONFIG.word2_vec = np.loadtxt(CONFIG.corpus_word2vec_path)
 
-    train_data = read_data(CONFIG.train_path, word2id_dict)
-    valid_data = read_data(CONFIG.dev_path, word2id_dict)
-    test_data = read_data(CONFIG.test_path, word2id_dict)
+    # train_data = read_data(CONFIG.train_path, word2id_dict, mode='train')
+    # valid_data = read_data(CONFIG.dev_path, word2id_dict, mode='valid')
+    # test_data = read_data(CONFIG.test_path, word2id_dict, mode='test')
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    net = TextCNN(CONFIG)
-    net = nn.DataParallel(net, device_ids=[0, 1, 2, 3])
-    net = net.cuda()
+    train_data = np.load(os.path.join(CONFIG.data_save_dir, '{}_max{}_data.npy'.format('train', CONFIG.max_sen_len)), allow_pickle=True).item()
+    valid_data = np.load(os.path.join(CONFIG.data_save_dir, '{}_max{}_data.npy'.format('valid', CONFIG.max_sen_len)), allow_pickle=True).item()
+    test_data = np.load(os.path.join(CONFIG.data_save_dir, '{}_max{}_data.npy'.format('test', CONFIG.max_sen_len)), allow_pickle=True).item()
 
     train_set = Set(train_data, mode='train')
     valid_set = Set(valid_data, mode='valid')
@@ -223,6 +227,11 @@ if __name__ == '__main__':
     valid_queue = DataLoader(valid_set, batch_size=CONFIG.batch_size, shuffle=False, num_workers=8, pin_memory=True)
     test_queue = DataLoader(test_set, batch_size=CONFIG.batch_size, shuffle=False, num_workers=8, pin_memory=True)
     print('Dataset: Train={}, Val={}, Test={}'.format(len(train_set), len(valid_set), len(test_set)))
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    net = TextCNN(CONFIG)
+    net = nn.DataParallel(net, device_ids=[0, 1, 2, 3])
+    net = net.cuda()
 
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=CONFIG.learning_rate, weight_decay=3e-4)
@@ -285,6 +294,6 @@ if __name__ == '__main__':
                 test_label.extend(targets.cpu().numpy().tolist())
                 test_pre.extend(outputs.cpu().numpy().argmax(axis=1).tolist())
         print('test_acc: {:.3f}, test_loss: {:.3f}'.format(test_acc.mean, test_loss.mean))
-        print('confusion matrix: \n', confusion_matrix(test_label, test_pre))
-        print('recall_score:', metrics.recall_score(test_label, test_pre))
-        print('f1_score:', metrics.f1_score(test_label, test_pre))
+        # print('confusion matrix: \n', confusion_matrix(test_label, test_pre))
+        # print('recall_score:', metrics.recall_score(test_label, test_pre))
+        # print('f1_score:', metrics.f1_score(test_label, test_pre))
