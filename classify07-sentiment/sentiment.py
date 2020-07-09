@@ -269,21 +269,21 @@ if __name__ == '__main__':
                 val_acc.add(prec[0].cpu())
         print('\nval_acc: {:.3f}, val_loss: {:.3f}'.format(val_acc.mean, val_loss.mean))
 
-    test_loss = meter.AverageValueMeter()
-    test_acc = meter.AverageValueMeter()
-    test_label = []
-    test_pre = []
-    with torch.no_grad():
-        for step, (inputs, targets) in enumerate(test_queue):
-            inputs, targets = inputs.to(device), targets.to(device)
-            outputs = net(inputs)
-            loss = criterion(outputs, targets)
-            test_loss.add(loss.item())
-            prec = accuracy(outputs, targets, topk=(1,))
-            test_acc.add(prec[0].cpu())
-            test_label.extend(targets.cpu().numpy().tolist())
-            test_pre.extend(outputs.cpu().numpy().argmax(axis=1).tolist())
-    print('test_acc: {:.3f}, test_loss: {:.3f}'.format(test_acc.mean, test_loss.mean))
-    print('confusion matrix: \n', confusion_matrix(test_label, test_pre))
-    print('recall_score:', metrics.recall_score(test_label, test_pre))
-    print('f1_score:', metrics.f1_score(test_label, test_pre))
+        test_loss = meter.AverageValueMeter()
+        test_acc = meter.AverageValueMeter()
+        test_label = []
+        test_pre = []
+        with torch.no_grad():
+            for step, (inputs, targets) in enumerate(test_queue):
+                inputs, targets = inputs.to(device), targets.to(device)
+                outputs = net(inputs)
+                loss = criterion(outputs, targets)
+                test_loss.add(loss.item())
+                prec = accuracy(outputs, targets, topk=(1,))
+                test_acc.add(prec[0].cpu())
+                test_label.extend(targets.cpu().numpy().tolist())
+                test_pre.extend(outputs.cpu().numpy().argmax(axis=1).tolist())
+        print('test_acc: {:.3f}, test_loss: {:.3f}'.format(test_acc.mean, test_loss.mean))
+        print('confusion matrix: \n', confusion_matrix(test_label, test_pre))
+        print('recall_score:', metrics.recall_score(test_label, test_pre))
+        print('f1_score:', metrics.f1_score(test_label, test_pre))
