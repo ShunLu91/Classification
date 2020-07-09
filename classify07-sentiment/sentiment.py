@@ -1,4 +1,5 @@
 import sys
+import jieba
 import gensim
 import torch
 import pandas as pd
@@ -13,11 +14,11 @@ from sklearn.metrics import accuracy_score
 
 
 class CONFIG:
-    vocab_size = 880405  # 词汇量，与word2id中的词汇量一致
+    vocab_size = 146214  # 词汇量，与word2id中的词汇量一致
     n_class = 2  # 分类数：分别为pos和neg
-    max_sen_len = 75  # 句子最大长度
+    max_sen_len = 75  # 句子最大长度 # train:187 # val:192 # test:156
     embedding_dim = 50  # 词向量维度
-    batch_size = 4000  # 批处理尺寸
+    batch_size = 2000  # 批处理尺寸
     n_hidden = 256  # 隐藏层节点数
     n_epoch = 10  # 训练迭代周期，即遍历整个训练样本的次数
     opt = 'adam'  # 训练优化器：adam
@@ -26,33 +27,40 @@ class CONFIG:
     num_filters = 256  # 卷积层filter的数量
     filter_sizes = '3,4,5'
     kernel_size = 4
-    save_dir = './data/checkpoints/'
-    train_path = './data/sentiment/train.txt'
-    dev_path = './data/sentiment/dev.txt'
-    test_path = './data/sentiment/test.txt'
-    word2id_path = './data/sentiment/word2id.txt'
-    pre_word2vec_path = './data/sentiment/wiki_word2vec_50.bin'
-    corpus_word2vec_path = './data/sentiment/word2vec.txt'
+    save_dir = './checkpoints/'
+    train_path = '../dataset/sentiment/train.txt'
+    dev_path = '../dataset/sentiment/dev.txt'
+    test_path = '../dataset/sentiment/test.txt'
+    word2id_path = '../dataset/sentiment/word2id.txt'
+    pre_word2vec_path = '../dataset/sentiment/wiki_word2vec_50.bin'
+    corpus_word2vec_path = '../dataset/sentiment/word2vec.txt'
 
 
-def build_word2id(file):
+def build_word2id():
     """
     :param file: word2id保存地址
     构建词汇表并存储
     """
     word2id = {'_PAD_': 0}
-    path = [CONFIG.train_path]
+    path = [CONFIG.train_path, CONFIG.dev_path, CONFIG.test_path]
     # 给每个词编号然后存入word2id这个字典中
 
     for _path in path:
+        step = 0
         with open(_path, encoding='utf-8') as f:
             for line in f.readlines():
-                sp = line.strip().split()
-                for word in sp[1:]:
+                sp = line.strip().split()[1] + line.strip().split()[2]
+                sp = jieba.cut(sp)
+                words = list(sp)
+                for word in words:
                     if word not in word2id.keys():
                         word2id[word] = len(word2id)
 
-    with open(file, 'w', encoding='utf-8') as f:
+                step += 1
+                if step % 10000 == 0:
+                    print('current step:{}'.format(step))
+
+    with open(CONFIG.word2id_path, 'w', encoding='utf-8') as f:
         for w in word2id:
             f.write(w + '\t')
             f.write(str(word2id[w]))
@@ -85,22 +93,34 @@ def build_word2vec(fname, word2id, save_to_path=None):
 
 
 def read_data(path, word_dict):
+    max_len = 0
+    step = 0
     data = {'comment': [], 'label': []}
     with open(path, 'r') as f:
         for line in f:
-            line = line.strip().split()
-            if line:
+            sp = line.strip().split()[1] + line.strip().split()[2]
+            sp = jieba.cut(sp)
+            words = list(sp)
+            if words:
                 line_vec = []
-                for _w in line[1:]:
+                for _w in words:
                     line_vec.append(word_dict.get(_w))
                 # 每条评论不等长的处理
+                if len(line_vec) > max_len:
+                    max_len = len(line_vec)
                 while len(line_vec) < CONFIG.max_sen_len:
                     line_vec.append(0)
                 if len(line_vec) > CONFIG.max_sen_len:
                     line_vec = line_vec[:CONFIG.max_sen_len]
                 data['comment'].append(line_vec)
-                data['label'].append(int(line[0]))
+                data['label'].append(int(line.strip().split()[0]))
+
+            step += 1
+            if step % 10000 == 0:
+                print('current step:{}'.format(step))
+    print('max_len: {}'.format(max_len))
     return data
+
 
 
 class Set(Dataset):
@@ -144,7 +164,7 @@ class TextCNN(nn.Module):
 
         embedding_dim = args.embedding_dim
         word_vec = torch.from_numpy(self.args.word2_vec)
-        self.embedding = nn.Embedding(self.args.vocab_size, self.args.embedding_dim, _weight= word_vec)
+        self.embedding = nn.Embedding(self.args.vocab_size, self.args.embedding_dim, _weight=word_vec)
 
         self.convs = nn.ModuleList(
             [nn.Conv2d(1, filter_num, (fsz, embedding_dim)) for fsz in filter_sizes])
@@ -170,7 +190,7 @@ class TextCNN(nn.Module):
 
 if __name__ == '__main__':
     # 首先生成word2id
-    # build_word2id(CONFIG.word2id_path)
+    # build_word2id()
 
     # 读word2id
     word2id_dict = {}
@@ -190,10 +210,11 @@ if __name__ == '__main__':
     train_data = read_data(CONFIG.train_path, word2id_dict)
     valid_data = read_data(CONFIG.dev_path, word2id_dict)
     test_data = read_data(CONFIG.test_path, word2id_dict)
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     net = TextCNN(CONFIG)
-    net = nn.DataParallel(net, device_ids=[0, 1, 2, 3])
-    net = net.cuda()
+    # net = nn.DataParallel(net, device_ids=[0, 1, 2, 3])
+    # net = net.cuda()
 
     train_set = Set(train_data, mode='train')
     valid_set = Set(valid_data, mode='valid')
@@ -201,22 +222,19 @@ if __name__ == '__main__':
     train_queue = DataLoader(train_set, batch_size=CONFIG.batch_size, shuffle=True, num_workers=8, pin_memory=True)
     valid_queue = DataLoader(valid_set, batch_size=CONFIG.batch_size, shuffle=False, num_workers=8, pin_memory=True)
     test_queue = DataLoader(test_set, batch_size=CONFIG.batch_size, shuffle=False, num_workers=8, pin_memory=True)
-    # print('Dataset: Train={}'.format(len(train_set)))
-
-
-
+    print('Dataset: Train={}'.format(len(train_set)))
 
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=CONFIG.learning_rate, weight_decay=3e-4)
 
     for epoch in range(CONFIG.n_epoch):
         train_acc = 0
-        n=0
+        n = 0
         net.train()
         train_loss = meter.AverageValueMeter()
         acc = meter.AverageValueMeter()
         for step, (inputs, targets) in enumerate(train_queue):
-            n+=1
+            n += 1
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
             outputs = net(inputs)
