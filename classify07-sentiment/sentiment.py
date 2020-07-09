@@ -269,6 +269,7 @@ if __name__ == '__main__':
                 val_acc.add(prec[0].cpu())
         print('\nval_acc: {:.3f}, val_loss: {:.3f}'.format(val_acc.mean, val_loss.mean))
 
+        net.eval()
         test_loss = meter.AverageValueMeter()
         test_acc = meter.AverageValueMeter()
         test_label = []
