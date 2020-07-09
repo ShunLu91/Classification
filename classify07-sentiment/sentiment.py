@@ -1,6 +1,7 @@
 import sys
 import gensim
 import torch
+import pandas as pd
 import numpy as np
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
@@ -42,10 +43,24 @@ def build_word2id(file):
     word2id = {'_PAD_': 0}
     path = [CONFIG.train_path]
     # 给每个词编号然后存入word2id这个字典中
+
     for _path in path:
         with open(_path, encoding='utf-8') as f:
             for line in f.readlines():
-                sp = line.strip().split()
+                # sp = line.strip().split()
+
+                maxlen = 200  # 截断字数
+                min_count = 20  # 出现次数少于该值的字扔掉。这是最简单的降维方法
+
+                content = ''.join(line)
+                abc = pd.Series(list(content)).value_counts()
+                abc = abc[abc >= min_count]
+                abc[:] = range(1, len(abc) + 1)
+                abc[''] = 0  # 添加空字符串用来补全
+                s = [i for i in s if i in abc.index]
+                s = s[:maxlen] + [''] * max(0, maxlen - len(s))
+                sp = list(abc[s])
+
                 for word in sp[1:]:
                     if word not in word2id.keys():
                         word2id[word] = len(word2id)
@@ -190,8 +205,8 @@ if __name__ == '__main__':
     test_data = read_data(CONFIG.test_path, word2id_dict)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     net = TextCNN(CONFIG)
-    net = nn.DataParallel(net, device_ids=[0, 1, 2, 3])
-    net = net.cuda()
+    # net = nn.DataParallel(net, device_ids=[0, 1, 2, 3])
+    # net = net.cuda()
 
     train_set = Set(train_data, mode='train')
     valid_set = Set(valid_data, mode='valid')
@@ -199,7 +214,10 @@ if __name__ == '__main__':
     train_queue = DataLoader(train_set, batch_size=CONFIG.batch_size, shuffle=True, num_workers=8, pin_memory=True)
     valid_queue = DataLoader(valid_set, batch_size=CONFIG.batch_size, shuffle=False, num_workers=8, pin_memory=True)
     test_queue = DataLoader(test_set, batch_size=CONFIG.batch_size, shuffle=False, num_workers=8, pin_memory=True)
-    print('Dataset: Train={}'.format(len(train_set)))
+    # print('Dataset: Train={}'.format(len(train_set)))
+
+
+
 
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=CONFIG.learning_rate, weight_decay=3e-4)
