@@ -205,8 +205,8 @@ if __name__ == '__main__':
     test_data = read_data(CONFIG.test_path, word2id_dict)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     net = TextCNN(CONFIG)
-    # net = nn.DataParallel(net, device_ids=[0, 1, 2, 3])
-    # net = net.cuda()
+    net = nn.DataParallel(net, device_ids=[0, 1, 2, 3])
+    net = net.cuda()
 
     train_set = Set(train_data, mode='train')
     valid_set = Set(valid_data, mode='valid')
