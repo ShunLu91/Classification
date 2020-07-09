@@ -233,8 +233,8 @@ if __name__ == '__main__':
     print('Dataset: Train={}, Val={}, Test={}'.format(len(train_set), len(valid_set), len(test_set)))
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    # model = TextCNN(CONFIG)
-    model = BertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=CONFIG.n_class)
+    model = TextCNN(CONFIG)
+    # model = BertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=CONFIG.n_class)
     model = nn.DataParallel(model, device_ids=[0, 1, 2, 3])
     model = model.cuda()
 
