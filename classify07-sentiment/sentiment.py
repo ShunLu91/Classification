@@ -12,14 +12,18 @@ import torch.nn.functional as F
 from sklearn import metrics
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
+from transformers import BertTokenizer
+from transformers import BertForSequenceClassification
+from transformers import BertConfig
+from transformers import BertPreTrainedModel
 
 
 class CONFIG:
     vocab_size = 146214  # 词汇量，与word2id中的词汇量一致
     n_class = 2  # 分类数：分别为pos和neg
-    max_sen_len = 150  # 句子最大长度 # train:187 # val:192 # test:156
+    max_sen_len = 30  # 句子最大长度 # train:187 # val:192 # test:156
     embedding_dim = 50  # 词向量维度
-    batch_size = 4000  # 批处理尺寸
+    batch_size = 100  # 批处理尺寸
     n_hidden = 256  # 隐藏层节点数
     n_epoch = 10  # 训练迭代周期，即遍历整个训练样本的次数
     opt = 'adam'  # 训练优化器：adam
@@ -229,24 +233,25 @@ if __name__ == '__main__':
     print('Dataset: Train={}, Val={}, Test={}'.format(len(train_set), len(valid_set), len(test_set)))
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    net = TextCNN(CONFIG)
-    net = nn.DataParallel(net, device_ids=[0, 1, 2, 3])
-    net = net.cuda()
+    # model = TextCNN(CONFIG)
+    model = BertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=CONFIG.n_class)
+    model = nn.DataParallel(model, device_ids=[0, 1, 2, 3])
+    model = model.cuda()
 
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(net.parameters(), lr=CONFIG.learning_rate, weight_decay=3e-4)
+    optimizer = torch.optim.Adam(model.parameters(), lr=CONFIG.learning_rate, weight_decay=3e-4)
 
     for epoch in range(CONFIG.n_epoch):
         train_acc = 0
         n = 0
-        net.train()
+        model.train()
         train_loss = meter.AverageValueMeter()
         acc = meter.AverageValueMeter()
         for step, (inputs, targets) in enumerate(train_queue):
             n += 1
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
-            outputs = net(inputs)
+            outputs = model(inputs)
             loss = criterion(outputs, targets)
             loss.backward()
             prec = accuracy(outputs, targets, topk=(1,))
@@ -265,20 +270,20 @@ if __name__ == '__main__':
             )
             sys.stdout.flush()
 
-        net.eval()
+        model.eval()
         val_loss = meter.AverageValueMeter()
         val_acc = meter.AverageValueMeter()
         with torch.no_grad():
             for step, (inputs, targets) in enumerate(valid_queue):
                 inputs, targets = inputs.to(device), targets.to(device)
-                outputs = net(inputs)
+                outputs = model(inputs)
                 loss = criterion(outputs, targets)
                 val_loss.add(loss.item())
                 prec = accuracy(outputs, targets, topk=(1,))
                 val_acc.add(prec[0].cpu())
         print('\nval_acc: {:.3f}, val_loss: {:.3f}'.format(val_acc.mean, val_loss.mean))
 
-        net.eval()
+        model.eval()
         test_loss = meter.AverageValueMeter()
         test_acc = meter.AverageValueMeter()
         test_label = []
@@ -286,7 +291,7 @@ if __name__ == '__main__':
         with torch.no_grad():
             for step, (inputs, targets) in enumerate(test_queue):
                 inputs, targets = inputs.to(device), targets.to(device)
-                outputs = net(inputs)
+                outputs = model(inputs)
                 loss = criterion(outputs, targets)
                 test_loss.add(loss.item())
                 prec = accuracy(outputs, targets, topk=(1,))
