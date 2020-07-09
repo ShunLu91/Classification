@@ -207,7 +207,7 @@ if __name__ == '__main__':
 
     CONFIG.word2_vec = np.loadtxt(CONFIG.corpus_word2vec_path)
 
-    train_data = read_data(CONFIG.train_path, word2id_dict)
+    # train_data = read_data(CONFIG.train_path, word2id_dict)
     valid_data = read_data(CONFIG.dev_path, word2id_dict)
     test_data = read_data(CONFIG.test_path, word2id_dict)
 
