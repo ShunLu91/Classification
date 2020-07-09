@@ -23,7 +23,7 @@ class CONFIG:
     n_epoch = 10  # 训练迭代周期，即遍历整个训练样本的次数
     opt = 'adam'  # 训练优化器：adam
     learning_rate = 0.001
-    drop_keep_prob = 0.5  # dropout层，参数keep的比例
+    drop_keep_prob = 0.1  # dropout层，参数keep的比例
     num_filters = 256  # 卷积层filter的数量
     filter_sizes = '3,4,5'
     kernel_size = 4
