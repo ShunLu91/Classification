@@ -25,11 +25,11 @@ class CONFIG:
     embedding_dim = 50  # 词向量维度
     batch_size = 100  # 批处理尺寸
     n_hidden = 256  # 隐藏层节点数
-    n_epoch = 10  # 训练迭代周期，即遍历整个训练样本的次数
+    n_epoch = 100  # 训练迭代周期，即遍历整个训练样本的次数
     opt = 'adam'  # 训练优化器：adam
     learning_rate = 0.025
-    drop_keep_prob = 0.1  # dropout层，参数keep的比例
-    num_filters = 256  # 卷积层filter的数量
+    # drop_keep_prob = 0.1  # dropout层，参数keep的比例
+    num_filters = 512  # 卷积层filter的数量
     filter_sizes = '3,4,5'
     kernel_size = 4
     save_dir = './checkpoints/'
@@ -177,7 +177,7 @@ class TextCNN(nn.Module):
 
         self.convs = nn.ModuleList(
             [nn.Conv2d(1, filter_num, (fsz, embedding_dim)) for fsz in filter_sizes])
-        self.dropout = nn.Dropout(args.drop_keep_prob)
+        # self.dropout = nn.Dropout(args.drop_keep_prob)
         self.linear = nn.Linear(len(filter_sizes) * filter_num, label_num)
 
     def forward(self, x):
@@ -192,7 +192,7 @@ class TextCNN(nn.Module):
         # 将不同卷积核运算结果维度（batch，out_chanel,w,h=1）展平为（batch, outchanel*w*h）
         x = [x_item.view(x_item.size(0), -1) for x_item in x]
         x = torch.cat(x, 1)  # 将不同卷积核提取的特征组合起来
-        x = self.dropout(x)
+        # x = self.dropout(x)
         logits = self.linear(x)
         return logits
 
