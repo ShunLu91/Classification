@@ -47,20 +47,7 @@ def build_word2id(file):
     for _path in path:
         with open(_path, encoding='utf-8') as f:
             for line in f.readlines():
-                # sp = line.strip().split()
-
-                maxlen = 200  # 截断字数
-                min_count = 20  # 出现次数少于该值的字扔掉。这是最简单的降维方法
-
-                content = ''.join(line)
-                abc = pd.Series(list(content)).value_counts()
-                abc = abc[abc >= min_count]
-                abc[:] = range(1, len(abc) + 1)
-                abc[''] = 0  # 添加空字符串用来补全
-                s = [i for i in s if i in abc.index]
-                s = s[:maxlen] + [''] * max(0, maxlen - len(s))
-                sp = list(abc[s])
-
+                sp = line.strip().split()
                 for word in sp[1:]:
                     if word not in word2id.keys():
                         word2id[word] = len(word2id)
