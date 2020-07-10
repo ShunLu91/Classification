@@ -112,7 +112,7 @@ class AlexNet(nn.Module):
             nn.MaxPool2d(kernel_size=3, stride=2),
         )
         self.classifier = nn.Sequential(
-            nn.Linear(256 * 6 * 6, 4096),
+            nn.Linear(256 * 3 * 3, 4096),
             nn.ReLU(inplace=True),
             nn.Linear(4096, 4096),
             nn.ReLU(inplace=True),
@@ -122,6 +122,6 @@ class AlexNet(nn.Module):
     def forward(self, x):
         x = self.features(x)
         print('xxxxx:', x.shape)
-        x = x.view(x.size(0), 256)
+        x = x.view(x.size(0), 256 * 3 * 3)
         x = self.classifier(x)
         return F.log_softmax(x)
