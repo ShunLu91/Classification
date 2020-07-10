@@ -10,7 +10,7 @@ import torch.optim as optim
 import sklearn.metrics as metrics
 import numpy as np
 from torchvision import datasets, transforms
-from kuzu import NetLin, NetFull, NetConv, Lenet
+from kuzu import *
 
 
 def train(args, model, device, train_loader, optimizer, epoch):
@@ -45,7 +45,6 @@ def test(args, model, device, test_loader):
             conf_matrix = conf_matrix + metrics.confusion_matrix(
                 pred.cpu(), target.cpu(), labels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         np.set_printoptions(precision=4, suppress=True)
-        print(type(conf_matrix))
         print(conf_matrix)
 
     test_loss /= len(test_loader.dataset)
@@ -58,7 +57,7 @@ def test(args, model, device, test_loader):
 def main():
     # Training settings
     parser = argparse.ArgumentParser()
-    parser.add_argument('--net', type=str, default='lenet', help='lin, full or conv')
+    parser.add_argument('--net', type=str, default='alex', help='lin, full or conv')
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
     parser.add_argument('--mom', type=float, default=0.5, help='momentum')
     parser.add_argument('--epochs', type=int, default=10, help='number of training epochs')
@@ -89,6 +88,8 @@ def main():
         net = NetFull().to(device)
     elif args.net == 'lenet':
         net = Lenet().to(device)
+    elif args.net == 'alex':
+        net = AlexNet().to(device)
     else:
         net = NetConv().to(device)
     #
