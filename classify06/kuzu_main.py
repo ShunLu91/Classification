@@ -10,7 +10,7 @@ import torch.optim as optim
 import sklearn.metrics as metrics
 import numpy as np
 from torchvision import datasets, transforms
-from kuzu import NetLin, NetFull, NetConv
+from kuzu import NetLin, NetFull, NetConv, Lenet
 
 
 def train(args, model, device, train_loader, optimizer, epoch):
@@ -58,7 +58,7 @@ def test(args, model, device, test_loader):
 def main():
     # Training settings
     parser = argparse.ArgumentParser()
-    parser.add_argument('--net', type=str, default='full', help='lin, full or conv')
+    parser.add_argument('--net', type=str, default='lenet', help='lin, full or conv')
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
     parser.add_argument('--mom', type=float, default=0.5, help='momentum')
     parser.add_argument('--epochs', type=int, default=10, help='number of training epochs')
@@ -87,6 +87,8 @@ def main():
         net = NetLin().to(device)
     elif args.net == 'full':
         net = NetFull().to(device)
+    elif args.net == 'lenet':
+        net = Lenet().to(device)
     else:
         net = NetConv().to(device)
     #

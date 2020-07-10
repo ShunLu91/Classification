@@ -63,3 +63,31 @@ class NetConv(nn.Module):
         x = x.view(x.size()[0], -1)
         x = self.fc(x)
         return F.log_softmax(x)
+
+
+class Lenet(nn.Module):
+    def __init__(self):
+        super(Lenet, self).__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(1, 6, 3, 1, 2),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            nn.Conv2d(6, 16, 5),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2)
+        )
+        self.fc = nn.Sequential(
+            nn.Linear(16 * 5 * 5, 120),
+            nn.BatchNorm1d(120),
+            nn.ReLU(),
+            nn.Linear(120, 84),
+            nn.BatchNorm1d(84),
+            nn.ReLU(),
+            nn.Linear(84, 10)
+        )
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = x.view(x.size()[0], -1)
+        x = self.fc(x)
+        return x
