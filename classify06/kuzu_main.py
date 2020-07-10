@@ -55,32 +55,10 @@ def test(args, model, device, test_loader):
         100. * correct / len(test_loader.dataset)))
 
 
-class Cutout(object):
-    def __init__(self, length):
-        self.length = length
-
-    def __call__(self, img):
-        h, w = img.size(1), img.size(2)
-        mask = np.ones((h, w), np.float32)
-        y = np.random.randint(h)
-        x = np.random.randint(w)
-
-        y1 = np.clip(y - self.length // 2, 0, h)
-        y2 = np.clip(y + self.length // 2, 0, h)
-        x1 = np.clip(x - self.length // 2, 0, w)
-        x2 = np.clip(x + self.length // 2, 0, w)
-
-        mask[y1: y2, x1: x2] = 0.
-        mask = torch.from_numpy(mask)
-        mask = mask.expand_as(img)
-        img *= mask
-        return img
-
-
 def main():
     # Training settings
     parser = argparse.ArgumentParser()
-    parser.add_argument('--net', type=str, default='conv', help='lin, full or conv')
+    parser.add_argument('--net', type=str, default='full', help='lin, full or conv')
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
     parser.add_argument('--mom', type=float, default=0.5, help='momentum')
     parser.add_argument('--epochs', type=int, default=10, help='number of training epochs')

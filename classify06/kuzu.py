@@ -24,8 +24,8 @@ class NetFull(nn.Module):
     def __init__(self):
         super(NetFull, self).__init__()
         # INSERT CODE HERE
-        self.fc0 = nn.Sequential(nn.Linear(in_features=784, out_features=256), nn.Tanh())
-        self.fc1 = nn.Sequential(nn.Linear(in_features=256, out_features=10), nn.Tanh())
+        self.fc0 = nn.Sequential(nn.Linear(in_features=784, out_features=100), nn.Tanh())
+        self.fc1 = nn.Sequential(nn.Linear(in_features=100, out_features=10), nn.Tanh())
 
     def forward(self, x):
         x = x.view(x.size()[0], -1)
