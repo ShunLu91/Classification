@@ -90,4 +90,4 @@ class Lenet(nn.Module):
         x = self.conv(x)
         x = x.view(x.size()[0], -1)
         x = self.fc(x)
-        return x
+        return F.log_softmax(x)
