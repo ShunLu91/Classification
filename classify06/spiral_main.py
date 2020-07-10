@@ -49,7 +49,7 @@ def graph_output(net):
         plt.pcolormesh(xrange,yrange,pred.cpu().view(yrange.size()[0],xrange.size()[0]), cmap='Wistia')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--net',type=str,default='raw',help='polar, raw or short')
+parser.add_argument('--net',type=str,default='PolarNet',help='polar, raw or short')
 parser.add_argument('--init',type=float,default=0.1,help='initial weight size')
 parser.add_argument('--hid',type=int,default='10',help='number of hidden units')
 parser.add_argument('--lr',type=float,default=0.01,help='learning rate')

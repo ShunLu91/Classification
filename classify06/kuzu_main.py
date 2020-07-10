@@ -57,7 +57,7 @@ def test(args, model, device, test_loader):
 def main():
     # Training settings
     parser = argparse.ArgumentParser()
-    parser.add_argument('--net', type=str, default='alex', help='lin, full or conv')
+    parser.add_argument('--net', type=str, default='lenet', help='lin, full or conv')
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
     parser.add_argument('--mom', type=float, default=0.5, help='momentum')
     parser.add_argument('--epochs', type=int, default=10, help='number of training epochs')
@@ -88,8 +88,6 @@ def main():
         net = NetFull().to(device)
     elif args.net == 'lenet':
         net = Lenet().to(device)
-    elif args.net == 'alex':
-        net = AlexNet().to(device)
     else:
         net = NetConv().to(device)
     #
