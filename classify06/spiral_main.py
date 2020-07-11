@@ -52,7 +52,7 @@ def graph_output(net):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--net', type=str, default='short', help='polar, raw or short')
+parser.add_argument('--net', type=str, default='polar', help='polar, raw or short')
 parser.add_argument('--init', type=float, default=0.16, help='initial weight size')
 parser.add_argument('--hid', type=int, default='10', help='number of hidden units')
 parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
@@ -103,8 +103,16 @@ for layer in [1, 2]:
             plt.scatter(full_input[:, 0], full_input[:, 1],
                         c=1 - full_target[:, 0], cmap='RdYlBu')
             plt.savefig('%s%d_%d.png' % (args.net, layer, node))
+plt.clf()
 
-graph_output(net)
-plt.scatter(full_input[:, 0], full_input[:, 1],
-            c=1 - full_target[:, 0], cmap='RdYlBu')
-plt.savefig('%s_out.png' % args.net)
+# graph_output(net)
+fig = plt.figure(figsize=(20, 8))
+for i in range(10):
+    fig.add_subplot(2, 5, i + 1)
+    graph_hidden(net=net, layer=2, node=i)
+    plt.scatter(full_input[:, 0], full_input[:, 1],
+                c=1 - full_target[:, 0], cmap='RdYlBu')
+    plt.title('%s_layer2_node%d' % (args.net, i+1))
+
+    # plt.savefig('%s_hid.png' % args.net)
+plt.show()
