@@ -52,8 +52,8 @@ def graph_output(net):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--net', type=str, default='PolarNet', help='polar, raw or short')
-parser.add_argument('--init', type=float, default=0.1, help='initial weight size')
+parser.add_argument('--net', type=str, default='short', help='polar, raw or short')
+parser.add_argument('--init', type=float, default=0.16, help='initial weight size')
 parser.add_argument('--hid', type=int, default='10', help='number of hidden units')
 parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
 parser.add_argument('--epochs', type=int, default='100000', help='max training epochs')
