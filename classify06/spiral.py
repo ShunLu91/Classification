@@ -46,22 +46,30 @@ class RawNet(torch.nn.Module):
 class ShortNet(torch.nn.Module):
     def __init__(self, num_hid):
         super(ShortNet, self).__init__()
-        self.fc1 = nn.Linear(in_features=2, out_features=num_hid)
+        self.fc1_0 = nn.Linear(in_features=2, out_features=num_hid)
+        self.fc1_1 = nn.Linear(in_features=2, out_features=num_hid)
+        self.fc1_2 = nn.Linear(in_features=2, out_features=1)
+
+        self.fc2_0 = nn.Linear(in_features=num_hid, out_features=num_hid)
+        self.fc2_1 = nn.Linear(in_features=num_hid, out_features=1)
+
+        self.fc3_0 = nn.Linear(in_features=num_hid, out_features=1)
+
         self.act1 = nn.Tanh()
-        self.fc2 = nn.Linear(in_features=num_hid, out_features=num_hid)
-        self.act2 = nn.Tanh()
-        self.out = nn.Linear(in_features=num_hid, out_features=1)
         self.act3 = nn.Sigmoid()
 
     def forward(self, input):
-        y1 = self.fc1(input)
-        y1 = self.act1(y1) + input
+        y1_0 = self.fc1_0(input)
+        y1_1 = self.fc1_1(input)
+        y1_2 = self.fc1_2(input)
+        y1_out = self.act1(y1_0)
 
-        y2 = self.fc2(y1) + input + y1
-        y2 = self.act2(y2)
+        y2_0 = self.fc2_0(y1_out)
+        y2_1 = self.fc2_1(y1_out)
+        y2_out = self.act1(y1_1 + y2_0)
 
-        y3 = self.out(y2) + input + y1 + y2
-        output = self.act3(y3)
+        y3_0 = self.fc3_0(y2_out)
+        output = self.act3(y1_2 + y2_1 + y3_0)
 
         return output
 
