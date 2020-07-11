@@ -26,7 +26,7 @@ parser.add_argument('--train_interval', type=int, default=1, help='train to prin
 parser.add_argument('--val_interval', type=int, default=5, help='evaluate and save frequency')
 parser.add_argument('--dropout', type=float, default=0.5, help='drop out rate')
 parser.add_argument('--grad_clip', type=float, default=5, help='gradient clipping')
-parser.add_argument('--gpu', type=int, default=7, help='gpu id')
+parser.add_argument('--gpu', type=int, default=3, help='gpu id')
 parser.add_argument('--resume', type=bool, default=False, help='resume')
 parser.add_argument('--pretrained', type=str, default=None, help='pretrained')
 # ******************************* dataset *******************************#
