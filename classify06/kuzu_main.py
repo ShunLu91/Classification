@@ -60,7 +60,7 @@ def main():
     parser.add_argument('--net', type=str, default='lenet', help='lin, full or conv')
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
     parser.add_argument('--mom', type=float, default=0.5, help='momentum')
-    parser.add_argument('--epochs', type=int, default=10, help='number of training epochs')
+    parser.add_argument('--epochs', type=int, default=20, help='number of training epochs')
     parser.add_argument('--no_cuda', action='store_true', default=False, help='disables CUDA')
     args = parser.parse_args()
 

@@ -96,23 +96,23 @@ if list(net.parameters()):
 
 # save model
 
-for layer in [1, 2]:
-    if layer == 1 or args.net != 'polar':
-        for node in range(args.hid):
-            graph_hidden(net, layer, node)
-            plt.scatter(full_input[:, 0], full_input[:, 1],
-                        c=1 - full_target[:, 0], cmap='RdYlBu')
-            plt.savefig('%s%d_%d.png' % (args.net, layer, node))
-plt.clf()
-
-# graph_output(net)
-fig = plt.figure(figsize=(20, 8))
-for i in range(10):
-    fig.add_subplot(2, 5, i + 1)
-    graph_hidden(net=net, layer=2, node=i)
-    plt.scatter(full_input[:, 0], full_input[:, 1],
-                c=1 - full_target[:, 0], cmap='RdYlBu')
-    plt.title('%s_layer2_node%d' % (args.net, i+1))
-
-    # plt.savefig('%s_hid.png' % args.net)
-plt.show()
+# for layer in [1, 2]:
+#     if layer == 1 or args.net != 'polar':
+#         for node in range(args.hid):
+#             graph_hidden(net, layer, node)
+#             plt.scatter(full_input[:, 0], full_input[:, 1],
+#                         c=1 - full_target[:, 0], cmap='RdYlBu')
+#             plt.savefig('%s%d_%d.png' % (args.net, layer, node))
+# plt.clf()
+#
+# # graph_output(net)
+# fig = plt.figure(figsize=(20, 8))
+# for i in range(10):
+#     fig.add_subplot(2, 5, i + 1)
+#     graph_hidden(net=net, layer=2, node=i)
+#     plt.scatter(full_input[:, 0], full_input[:, 1],
+#                 c=1 - full_target[:, 0], cmap='RdYlBu')
+#     plt.title('%s_layer2_node%d' % (args.net, i+1))
+#
+#     # plt.savefig('%s_hid.png' % args.net)
+# plt.show()
