@@ -71,6 +71,7 @@ def convertNetOutput(netOutput):
     If your network outputs a different representation or any float
     values other than the five mentioned, convert the output here.
     """
+    netOutput = torch.argmax(netOutput, dim=1)
 
     return netOutput
 
