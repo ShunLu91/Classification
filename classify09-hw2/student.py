@@ -143,4 +143,4 @@ lossFunc = loss()
 trainValSplit = 0.8
 batchSize = 128
 epochs = 1
-optimiser = toptim.SGD(net.parameters(), lr=0.01)
+optimiser = toptim.SGD(net.parameters(), lr=0.1)
