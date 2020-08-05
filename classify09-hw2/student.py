@@ -18,7 +18,7 @@ The variable device may be used to refer to the CPU/GPU being used by PyTorch.
 You may only use GloVe 6B word vectors as found in the torchtext package.
 """
 
-# import torch
+import torch
 import torch.nn as tnn
 import torch.optim as toptim
 from torchtext.vocab import GloVe
@@ -44,7 +44,8 @@ def postprocessing(batch, vocab):
     return batch
 
 stopWords = {}
-wordVectors = GloVe(name='6B', dim=50)
+embed_dim = 50
+wordVectors = GloVe(name='6B', dim=embed_dim)
 
 ###########################################################################
 ##### The following determines the processing of label data (ratings) #####
@@ -58,8 +59,9 @@ def convertLabel(datasetLabel):
     to convert them to another representation in this function.
     Consider regression vs classification.
     """
+    datasetLabel = datasetLabel - 1
 
-    return datasetLabel
+    return datasetLabel.long()
 
 def convertNetOutput(netOutput):
     """
@@ -75,7 +77,6 @@ def convertNetOutput(netOutput):
 ###########################################################################
 ################### The following determines the model ####################
 ###########################################################################
-
 class network(tnn.Module):
     """
     Class for creating the neural network.  The input to your network
@@ -86,9 +87,33 @@ class network(tnn.Module):
 
     def __init__(self):
         super(network, self).__init__()
+        self.classes = 5
+        self.hidden_dim = 512
+        self.hidden_layers = 3
+        self.lstm = tnn.LSTM(embed_dim, hidden_size=self.hidden_dim, num_layers=self.hidden_layers)
+        self.linear = tnn.Sequential(
+            tnn.Linear(self.hidden_dim, 256),
+            tnn.ReLU(),
+            tnn.Linear(256, 128),
+            tnn.ReLU(),
+            tnn.Linear(128, self.classes),
+        )
+
+    def get_last_output(self, output, batch_seq_len):
+        last_outputs = torch.zeros((output.shape[0], output.shape[2]))
+        for i in range(len(batch_seq_len)):
+            last_outputs[i] = output[i][batch_seq_len[i] - 1]
+        last_outputs = last_outputs.to(output.device)
+        return last_outputs
 
     def forward(self, input, length):
-        pass
+        embed_input_x_packed = tnn.utils.rnn.pack_padded_sequence(input, length, batch_first=True)
+        encoder_outputs_packed = self.lstm(embed_input_x_packed)[0]
+        encoder_outputs, _ = tnn.utils.rnn.pad_packed_sequence(encoder_outputs_packed, batch_first=True)
+        output = self.linear(encoder_outputs)
+        output = self.get_last_output(output, length)
+        return output
+
 
 class loss(tnn.Module):
     """
@@ -98,9 +123,10 @@ class loss(tnn.Module):
 
     def __init__(self):
         super(loss, self).__init__()
+        self.loss = tnn.CrossEntropyLoss()
 
     def forward(self, output, target):
-        pass
+        return self.loss(output, target)
 
 net = network()
 """
