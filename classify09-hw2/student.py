@@ -102,7 +102,7 @@ class network(tnn.Module):
     def __init__(self):
         super(network, self).__init__()
         self.classes = 5
-        self.hidden_dim = 128
+        self.hidden_dim = 64
         self.hidden_layers = 3
         self.lstm = tnn.LSTM(embed_dim, hidden_size=self.hidden_dim, num_layers=self.hidden_layers)
         self.linear = tnn.Sequential(
@@ -110,7 +110,7 @@ class network(tnn.Module):
             # tnn.ReLU(),
             # tnn.Linear(256, 128),
             # tnn.ReLU(),
-            tnn.Linear(128, self.classes),
+            tnn.Linear(self.hidden_dim, self.classes),
         )
 
     def get_last_output(self, output, batch_seq_len):
@@ -155,4 +155,4 @@ trainValSplit = 0.8
 batchSize = 32
 epochs = 10
 # optimiser = toptim.SGD(net.parameters(), lr=0.1)
-optimiser = toptim.Adam(net.parameters(), lr=0.001)
+optimiser = toptim.Adam(net.parameters(), lr=0.0025)
