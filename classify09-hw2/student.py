@@ -102,15 +102,15 @@ class network(tnn.Module):
     def __init__(self):
         super(network, self).__init__()
         self.classes = 5
-        self.hidden_dim = 512
+        self.hidden_dim = 200
         self.hidden_layers = 3
         self.lstm = tnn.LSTM(embed_dim, hidden_size=self.hidden_dim, num_layers=self.hidden_layers)
         self.linear = tnn.Sequential(
-            tnn.Linear(self.hidden_dim, 256),
-            tnn.ReLU(),
-            tnn.Linear(256, 128),
-            tnn.ReLU(),
-            tnn.Linear(128, self.classes),
+            # tnn.Linear(self.hidden_dim, 256),
+            # tnn.ReLU(),
+            # tnn.Linear(256, 128),
+            # tnn.ReLU(),
+            tnn.Linear(200, self.classes),
         )
 
     def get_last_output(self, output, batch_seq_len):
@@ -124,8 +124,8 @@ class network(tnn.Module):
         embed_input_x_packed = tnn.utils.rnn.pack_padded_sequence(input, length, batch_first=True)
         encoder_outputs_packed = self.lstm(embed_input_x_packed)[0]
         encoder_outputs, _ = tnn.utils.rnn.pad_packed_sequence(encoder_outputs_packed, batch_first=True)
-        output = self.linear(encoder_outputs)
-        output = self.get_last_output(output, length)
+        output = self.linear(encoder_outputs[-1])
+        # output = self.get_last_output(output, length)
         return output
 
 
