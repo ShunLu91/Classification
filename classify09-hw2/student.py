@@ -102,7 +102,7 @@ class network(tnn.Module):
     def __init__(self):
         super(network, self).__init__()
         self.classes = 5
-        self.hidden_dim = 128
+        self.hidden_dim = 64
         self.hidden_layers = 3
         self.dp = tnn.Dropout(0.2)
         self.lstm = tnn.LSTM(embed_dim, hidden_size=self.hidden_dim, num_layers=self.hidden_layers)
