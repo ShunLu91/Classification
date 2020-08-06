@@ -33,6 +33,14 @@ def preprocessing(sample):
     """
     Called after tokenising but before numericalising.
     """
+    import re
+    import string
+    input = " ".join(sample)
+    text = re.sub(r"[^\x00-\x7F]+", " ", input)
+    regex = re.compile('[' + re.escape(string.punctuation) + '0-9\\r\\t\\n]')
+    nopunct = regex.sub(" ", text.lower())
+    result = nopunct.split(" ")
+    sample = list(filter(lambda x: x != '', result))
 
     return sample
 
@@ -40,11 +48,16 @@ def postprocessing(batch, vocab):
     """
     Called after numericalisation but before vectorisation.
     """
-
+    vocabCount = vocab.freqs
+    vocabITOS = vocab.itos
+    for sentence in batch:
+        for j, word in enumerate(sentence):
+            if vocabCount[vocabITOS[word]] < 3:
+                sentence[j] = -1
     return batch
 
 stopWords = {}
-embed_dim = 50
+embed_dim = 200
 wordVectors = GloVe(name='6B', dim=embed_dim)
 
 ###########################################################################
@@ -71,9 +84,9 @@ def convertNetOutput(netOutput):
     If your network outputs a different representation or any float
     values other than the five mentioned, convert the output here.
     """
-    netOutput = torch.argmax(netOutput, dim=1)
+    netOutput = torch.argmax(netOutput, dim=1) + 1
 
-    return netOutput
+    return netOutput.float()
 
 ###########################################################################
 ################### The following determines the model ####################
@@ -141,6 +154,6 @@ lossFunc = loss()
 ###########################################################################
 
 trainValSplit = 0.8
-batchSize = 128
-epochs = 1
+batchSize = 32
+epochs = 10
 optimiser = toptim.SGD(net.parameters(), lr=0.1)
