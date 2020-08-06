@@ -102,9 +102,9 @@ class network(tnn.Module):
     def __init__(self):
         super(network, self).__init__()
         self.classes = 5
-        self.hidden_dim = 64
+        self.hidden_dim = 200
         self.hidden_layers = 3
-        self.dp = tnn.Dropout(0.3)
+        self.dp = tnn.Dropout(0.2)
         self.lstm = tnn.LSTM(embed_dim, hidden_size=self.hidden_dim, num_layers=self.hidden_layers)
         self.linear = tnn.Sequential(
             # tnn.Linear(self.hidden_dim, 256),
@@ -114,10 +114,9 @@ class network(tnn.Module):
             tnn.Linear(self.hidden_dim, self.classes),
         )
 
-
     def forward(self, input, length):
         input = self.dp(input)
-        embed_input_x_packed = tnn.utils.rnn.pack_padded_sequence(input, length, batch_first=True)
+        embed_input_x_packed = tnn.utils.rnn.pack_padded_sequence(input, length, batch_first=True, enforce_sorted=False)
         encoder_outputs_packed, (hidden, _) = self.lstm(embed_input_x_packed)
         output = self.linear(hidden[-1])
         return output
@@ -150,5 +149,5 @@ lossFunc = loss()
 trainValSplit = 0.8
 batchSize = 32
 epochs = 10
-# optimiser = toptim.SGD(net.parameters(), lr=0.1)
-optimiser = toptim.Adam(net.parameters(), lr=0.0025)
+optimiser = toptim.SGD(net.parameters(), lr=0.8)
+# optimiser = toptim.Adam(net.parameters(), lr=0.0025)
