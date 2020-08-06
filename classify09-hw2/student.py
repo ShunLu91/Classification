@@ -126,7 +126,8 @@ class network(tnn.Module):
         encoder_outputs, _ = tnn.utils.rnn.pad_packed_sequence(encoder_outputs_packed, batch_first=True)
         # print('hidden:', hidden.shape)
         # print('encoder_outputs:', encoder_outputs.shape)
-        output = self.linear(hidden[-1])
+        # output = self.linear(hidden[-1])
+        output = self.linear(encoder_outputs[:, -1, :])
         # print('hidden[-1]:', hidden[-1].shape)
         # print('output:', output.shape)
         # import sys
