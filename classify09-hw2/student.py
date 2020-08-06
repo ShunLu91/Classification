@@ -122,8 +122,8 @@ class network(tnn.Module):
 
     def forward(self, input, length):
         embed_input_x_packed = tnn.utils.rnn.pack_padded_sequence(input, length, batch_first=True)
-        encoder_outputs_packed = self.lstm(embed_input_x_packed)[0]
-        encoder_outputs, (hidden, _) = tnn.utils.rnn.pad_packed_sequence(encoder_outputs_packed, batch_first=True)
+        encoder_outputs_packed, (hidden, _) = self.lstm(embed_input_x_packed)
+        # encoder_outputs, _ = tnn.utils.rnn.pad_packed_sequence(encoder_outputs_packed, batch_first=True)
         output = self.linear(hidden[-1])
         # output = self.get_last_output(output, length)
         return output
