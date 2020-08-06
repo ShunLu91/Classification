@@ -102,8 +102,9 @@ class network(tnn.Module):
     def __init__(self):
         super(network, self).__init__()
         self.classes = 5
-        self.hidden_dim = 64
+        self.hidden_dim = 128
         self.hidden_layers = 3
+        self.dp = tnn.Dropout(0.2)
         self.lstm = tnn.LSTM(embed_dim, hidden_size=self.hidden_dim, num_layers=self.hidden_layers)
         self.linear = tnn.Sequential(
             # tnn.Linear(self.hidden_dim, 256),
@@ -113,14 +114,9 @@ class network(tnn.Module):
             tnn.Linear(self.hidden_dim, self.classes),
         )
 
-    def get_last_output(self, output, batch_seq_len):
-        last_outputs = torch.zeros((output.shape[0], output.shape[2]))
-        for i in range(len(batch_seq_len)):
-            last_outputs[i] = output[i][batch_seq_len[i] - 1]
-        last_outputs = last_outputs.to(output.device)
-        return last_outputs
 
     def forward(self, input, length):
+        input = self.dp(input)
         embed_input_x_packed = tnn.utils.rnn.pack_padded_sequence(input, length, batch_first=True)
         encoder_outputs_packed, (hidden, _) = self.lstm(embed_input_x_packed)
         output = self.linear(hidden[-1])
