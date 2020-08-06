@@ -108,9 +108,9 @@ class network(tnn.Module):
         self.linear = tnn.Sequential(
             # tnn.Linear(self.hidden_dim, 256),
             # tnn.ReLU(),
-            tnn.Linear(256, 128),
-            tnn.ReLU(),
-            tnn.Linear(128, self.classes),
+            # tnn.Linear(256, 128),
+            # tnn.ReLU(),
+            tnn.Linear(256, self.classes),
         )
 
     def get_last_output(self, output, batch_seq_len):
