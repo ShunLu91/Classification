@@ -35,12 +35,12 @@ def preprocessing(sample):
     """
     import re
     import string
-    input = " ".join(sample)
-    text = re.sub(r"[^\x00-\x7F]+", " ", input)
+    word_str = " ".join(sample)
+    word = re.sub(r"[^\x00-\x7F]+", " ", word_str)
     regex = re.compile('[' + re.escape(string.punctuation) + '0-9\\r\\t\\n]')
-    nopunct = regex.sub(" ", text.lower())
-    result = nopunct.split(" ")
-    sample = list(filter(lambda x: x != '', result))
+    word_sub = regex.sub(" ", word.lower())
+    res = word_sub.split(" ")
+    sample = list(filter(lambda x: x != '', res))
 
     return sample
 
@@ -48,12 +48,12 @@ def postprocessing(batch, vocab):
     """
     Called after numericalisation but before vectorisation.
     """
-    vocabCount = vocab.freqs
-    vocabITOS = vocab.itos
-    for sentence in batch:
-        for j, word in enumerate(sentence):
-            if vocabCount[vocabITOS[word]] < 3:
-                sentence[j] = -1
+    itos_dict = vocab.itos
+    count_dict = vocab.freqs
+    for _s in batch:
+        for i, _w in enumerate(_s):
+            if count_dict[itos_dict[_w]] < 3:
+                _s[i] = -1
     return batch
 
 stopWords = {}
