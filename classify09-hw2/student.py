@@ -57,7 +57,7 @@ def postprocessing(batch, vocab):
     return batch
 
 stopWords = {}
-embed_dim = 200
+embed_dim = 100
 wordVectors = GloVe(name='6B', dim=embed_dim)
 
 ###########################################################################
