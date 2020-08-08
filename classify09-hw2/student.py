@@ -57,7 +57,7 @@ def postprocessing(batch, vocab):
     return batch
 
 stopWords = {}
-embed_dim = 100
+embed_dim = 200
 wordVectors = GloVe(name='6B', dim=embed_dim)
 
 ###########################################################################
@@ -104,7 +104,7 @@ class network(tnn.Module):
         self.classes = 5
         self.hidden_dim = 64
         self.hidden_layers = 2
-        self.dp = tnn.Dropout(0.3)
+        self.dp = tnn.Dropout(0.2)
         self.lstm = tnn.LSTM(embed_dim, hidden_size=self.hidden_dim, num_layers=self.hidden_layers)
         self.linear = tnn.Sequential(
             # tnn.Linear(self.hidden_dim, 256),
