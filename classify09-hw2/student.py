@@ -73,8 +73,9 @@ def convertLabel(datasetLabel):
     Consider regression vs classification.
     """
     datasetLabel = datasetLabel - 1
+    datasetLabel = datasetLabel.long()
 
-    return datasetLabel.long()
+    return datasetLabel
 
 def convertNetOutput(netOutput):
     """
@@ -85,8 +86,9 @@ def convertNetOutput(netOutput):
     values other than the five mentioned, convert the output here.
     """
     netOutput = torch.argmax(netOutput, dim=1) + 1
+    netOutput = netOutput.float()
 
-    return netOutput.float()
+    return netOutput
 
 ###########################################################################
 ################### The following determines the model ####################
