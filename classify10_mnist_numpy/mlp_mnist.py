@@ -133,7 +133,7 @@ if __name__ == '__main__':
     num_epochs = 10
     batch_size = 64
     learning_rate = 1e-4
-    weight_decay = 4e-5
+    weight_decay = 4e-4
     best_acc = 0.0
 
     num_layers = 3
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     test_loss_list = []
     test_acc_list = []
 
-    use_dp = False
+    use_dp = True
     dp_prob = 0.3
     noise = False
     noise_prob = 0.9
