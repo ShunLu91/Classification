@@ -137,7 +137,7 @@ if __name__ == '__main__':
     best_acc = 0.0
 
     num_layers = 3
-    fc_dim = [256, 128, 10]
+    fc_dim = [500, 256, 10]
 
     train_batch_loss_list = []
     train_batch_acc_list = []
