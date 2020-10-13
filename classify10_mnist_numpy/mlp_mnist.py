@@ -136,8 +136,8 @@ if __name__ == '__main__':
     weight_decay = 4e-4
     best_acc = 0.0
 
-    num_layers = 4
-    fc_dim = [500, 256, 128, 10]
+    num_layers = 3
+    fc_dim = [1024, 512, 10]
 
     train_batch_loss_list = []
     train_batch_acc_list = []
