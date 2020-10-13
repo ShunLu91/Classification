@@ -149,9 +149,12 @@ if __name__ == '__main__':
     noise = False
     noise_prob = 0.9
 
-    train_images, train_labels = load_mnist('/Users/lushun_imac/Documents/code/work/Classification/data/MNIST/raw')
-    test_images, test_labels = load_mnist('/Users/lushun_imac/Documents/code/work/Classification/data/MNIST/raw',
-                                          't10k')
+    # train_images, train_labels = load_mnist('/Users/lushun_imac/Documents/code/work/Classification/data/MNIST/raw')
+    # test_images, test_labels = load_mnist('/Users/lushun_imac/Documents/code/work/Classification/data/MNIST/raw', 't10k')
+    train_images, train_labels = load_mnist('./dataset/MNIST/raw')
+    test_images, test_labels = load_mnist('./dataset/MNIST/raw', 't10k')
+
+
     print(
         'train_images: %d, test_images: %d, batch_size: %d, train_step: %d, test_step: %d' %
         (len(train_images), len(test_images), batch_size, len(train_images) // batch_size,
@@ -160,7 +163,7 @@ if __name__ == '__main__':
 
     model = MLP_Net(num_layers=num_layers, fc_dim=fc_dim, use_dp=False, dp_prob=0.3)
     for epoch in range(num_epochs):
-        train(print_freq=50)
+        train(print_freq=100)
         best_acc = evaluate(best_acc)
 
     print(train_batch_loss_list)
