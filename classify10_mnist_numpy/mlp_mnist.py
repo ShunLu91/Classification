@@ -149,8 +149,9 @@ if __name__ == '__main__':
     noise = False
     noise_prob = 0.9
 
-    # train_images, train_labels = load_mnist('/Users/lushun_imac/Documents/code/work/Classification/data/MNIST/raw')
-    # test_images, test_labels = load_mnist('/Users/lushun_imac/Documents/code/work/Classification/data/MNIST/raw', 't10k')
+    print('num_epochs: %s, batch_size: %s, learning_rate: %s, weight_decay: %s, '
+          'num_layers: %s, fc_dim: %s, noise: %s, noise_prob: %s' %
+          (num_epochs, batch_size, learning_rate, weight_decay, num_layers, fc_dim, noise, noise_prob))
     train_images, train_labels = load_mnist('./dataset/MNIST/raw')
     test_images, test_labels = load_mnist('./dataset/MNIST/raw', 't10k')
 
