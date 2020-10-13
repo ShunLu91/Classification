@@ -6,4 +6,6 @@
 #nohup python -u classify10_mnist_numpy/mlp_mnist.py > ./logdir/wd_l.log  2>&1 &
 #nohup python -u classify10_mnist_numpy/mlp_mnist.py > ./logdir/wd_s.log  2>&1 &
 #nohup python -u classify10_mnist_numpy/mlp_mnist.py > ./logdir/dp03.log  2>&1 &
-nohup python -u classify10_mnist_numpy/mlp_mnist.py > ./logdir/dp06.log  2>&1 &
+#nohup python -u classify10_mnist_numpy/mlp_mnist.py > ./logdir/dp06.log  2>&1 &
+nohup python -u classify10_mnist_numpy/mlp_mnist.py > ./logdir/noise03.log  2>&1 &
+#nohup python -u classify10_mnist_numpy/mlp_mnist.py > ./logdir/noise06.log  2>&1 &
