@@ -86,8 +86,8 @@ def train(print_freq=100):
                     epoch, step, batch_acc / float(batch_size), batch_loss / batch_size, learning_rate
                 )
             )
-        train_batch_loss_list.append(batch_loss / batch_size)
-        train_batch_acc_list.append(batch_acc / float(batch_size))
+            train_batch_loss_list.append(batch_loss / batch_size)
+            train_batch_acc_list.append(batch_acc / float(batch_size))
     train_loss_list.append(train_loss / train_images.shape[0])
     train_acc_list.append(train_acc / float(train_images.shape[0]))
 
@@ -164,7 +164,7 @@ if __name__ == '__main__':
 
     model = MLP_Net(num_layers=num_layers, fc_dim=fc_dim, use_dp=False, dp_prob=0.3)
     for epoch in range(num_epochs):
-        train(print_freq=100)
+        train(print_freq=50)
         best_acc = evaluate(best_acc)
 
     print(train_batch_loss_list)
