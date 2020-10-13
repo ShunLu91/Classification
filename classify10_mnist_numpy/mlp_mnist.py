@@ -149,7 +149,7 @@ if __name__ == '__main__':
     use_dp = False
     dp_prob = 0.3
     noise = True
-    noise_prob = 0.3
+    noise_prob = 0.6
 
     print('num_epochs: %s, batch_size: %s, learning_rate: %s, weight_decay: %s, '
           'num_layers: %s, fc_dim: %s, noise: %s, noise_prob: %s, use_dp: %s, dp_prob: %s' %
