@@ -147,7 +147,7 @@ if __name__ == '__main__':
     test_acc_list = []
 
     use_dp = True
-    dp_prob = 0.3
+    dp_prob = 0.6
     noise = False
     noise_prob = 0.9
 
