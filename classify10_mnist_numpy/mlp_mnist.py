@@ -133,7 +133,7 @@ if __name__ == '__main__':
     num_epochs = 10
     batch_size = 64
     learning_rate = 1e-4
-    weight_decay = 4e-4
+    weight_decay = 4e-3
     best_acc = 0.0
 
     num_layers = 3
@@ -146,12 +146,14 @@ if __name__ == '__main__':
     test_loss_list = []
     test_acc_list = []
 
+    use_dp = False
+    dp_prob = 0.3
     noise = False
     noise_prob = 0.9
 
     print('num_epochs: %s, batch_size: %s, learning_rate: %s, weight_decay: %s, '
-          'num_layers: %s, fc_dim: %s, noise: %s, noise_prob: %s' %
-          (num_epochs, batch_size, learning_rate, weight_decay, num_layers, fc_dim, noise, noise_prob))
+          'num_layers: %s, fc_dim: %s, noise: %s, noise_prob: %s, use_dp: %s, dp_prob: %s' %
+          (num_epochs, batch_size, learning_rate, weight_decay, num_layers, fc_dim, noise, noise_prob, use_dp, dp_prob))
     train_images, train_labels = load_mnist('./dataset/MNIST/raw')
     test_images, test_labels = load_mnist('./dataset/MNIST/raw', 't10k')
 
@@ -162,7 +164,7 @@ if __name__ == '__main__':
          len(test_images) // batch_size)
     )
 
-    model = MLP_Net(num_layers=num_layers, fc_dim=fc_dim, use_dp=False, dp_prob=0.3)
+    model = MLP_Net(num_layers=num_layers, fc_dim=fc_dim, use_dp=use_dp, dp_prob=dp_prob)
     for epoch in range(num_epochs):
         train(print_freq=50)
         best_acc = evaluate(best_acc)
