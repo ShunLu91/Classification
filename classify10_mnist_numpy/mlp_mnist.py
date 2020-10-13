@@ -1,11 +1,16 @@
+import sys
+sys.path.append('.')
+sys.path.append('..')
+
 import time
 import numpy as np
+import matplotlib.pyplot as plt
 
 from classify10_mnist_numpy.layers.relu import Relu
 from classify10_mnist_numpy.layers.fc import FullyConnect
 from classify10_mnist_numpy.layers.dropout import Dropout
 from classify10_mnist_numpy.layers.softmax import Softmax
-from classify10_mnist_numpy.utils import load_mnist, add_noise
+from classify10_mnist_numpy.utils import load_mnist, add_noise, plot_curve
 
 
 class MLP_Net:
@@ -81,6 +86,10 @@ def train(print_freq=100):
                     epoch, step, batch_acc / float(batch_size), batch_loss / batch_size, learning_rate
                 )
             )
+        train_batch_loss_list.append(batch_loss / batch_size)
+        train_batch_acc_list.append(batch_acc / float(batch_size))
+    train_loss_list.append(train_loss / train_images.shape[0])
+    train_acc_list.append(train_acc / float(train_images.shape[0]))
 
     print(
         time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) +
@@ -108,6 +117,8 @@ def evaluate(best_acc):
 
     if best_acc < val_acc / float(test_images.shape[0]):
         best_acc = val_acc / float(test_images.shape[0])
+    test_loss_list.append(val_loss / test_images.shape[0])
+    test_acc_list.append(val_acc / float(test_images.shape[0]))
 
     print(
         time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) +
@@ -124,8 +135,20 @@ if __name__ == '__main__':
     learning_rate = 1e-4
     weight_decay = 4e-4
     best_acc = 0.0
-    noise = True
+
+    num_layers = 3
+    fc_dim = [500, 256, 10]
+
+    train_batch_loss_list = []
+    train_batch_acc_list = []
+    train_loss_list = []
+    train_acc_list = []
+    test_loss_list = []
+    test_acc_list = []
+
+    noise = False
     noise_prob = 0.9
+
     train_images, train_labels = load_mnist('/Users/lushun_imac/Documents/code/work/Classification/data/MNIST/raw')
     test_images, test_labels = load_mnist('/Users/lushun_imac/Documents/code/work/Classification/data/MNIST/raw',
                                           't10k')
@@ -135,7 +158,15 @@ if __name__ == '__main__':
          len(test_images) // batch_size)
     )
 
-    model = MLP_Net(num_layers=3, fc_dim=[500, 256, 10], use_dp=False, dp_prob=0.3)
+    model = MLP_Net(num_layers=num_layers, fc_dim=fc_dim, use_dp=False, dp_prob=0.3)
     for epoch in range(num_epochs):
-        train(print_freq=100)
+        train(print_freq=50)
         best_acc = evaluate(best_acc)
+
+    print(train_batch_loss_list)
+    print(train_batch_acc_list)
+    print(train_loss_list)
+    print(train_acc_list)
+    print(test_loss_list)
+    print(test_acc_list)
+

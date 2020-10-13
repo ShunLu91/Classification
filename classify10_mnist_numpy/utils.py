@@ -33,3 +33,6 @@ def add_noise(matrix, noise_prob):
 
     return noise_img
 
+
+def plot_curve(data, xlabel, ylabel):
+    pass
