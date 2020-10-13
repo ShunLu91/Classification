@@ -133,7 +133,7 @@ if __name__ == '__main__':
     num_epochs = 10
     batch_size = 64
     learning_rate = 1e-4
-    weight_decay = 4e-3
+    weight_decay = 4e-5
     best_acc = 0.0
 
     num_layers = 3
