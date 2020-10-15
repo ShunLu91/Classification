@@ -22,6 +22,6 @@
 #nohup python -u main.py --layers 3 --dimension 128 64 10 --dropout_rate 0.9 > ./logdir/dp2.log  2>&1 &
 
 # noise
-nohup python -u main.py --layers 3 --dimension 128 64 10 --noise_rate 0.3 > ./logdir/nr0.log  2>&1 &
-nohup python -u main.py --layers 3 --dimension 128 64 10 --noise_rate 0.6 > ./logdir/nr1.log  2>&1 &
-nohup python -u main.py --layers 3 --dimension 128 64 10 --noise_rate 0.9 > ./logdir/nr2.log  2>&1 &
+#nohup python -u main.py --layers 3 --dimension 128 64 10 --noise_rate 0.3 > ./logdir/nr0.log  2>&1 &
+#nohup python -u main.py --layers 3 --dimension 128 64 10 --noise_rate 0.6 > ./logdir/nr1.log  2>&1 &
+#nohup python -u main.py --layers 3 --dimension 128 64 10 --noise_rate 0.9 > ./logdir/nr2.log  2>&1 &
